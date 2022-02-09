@@ -1,0 +1,1 @@
+groovyz $HOME/dbb-zappbuild/build.groovy -w $HOME/poc-workspace -a poc-app -o $HOME/build/out -h MIT0002  poc-app/cobol/epsmpmt.cbl
