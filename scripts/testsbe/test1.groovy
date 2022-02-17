@@ -3,12 +3,10 @@ import com.ibm.dbb.build.*
 
 
 println("Copying source from zFS to PDS . . .")
-def copy = new CopyToPDS().file(new File("/u/adcde/build/test1.cbl")).dataset("ADCDE.BUILD.COBOL").member("HELLO1")
+def copy = new CopyToPDS().file(new File("/u/adcde/dbb-zappbuild/scripts/testsbe/cobol/test1.cbl")).dataset("ADCDE.BUILD.COBOL").member("HELLO1")
 copy.execute()
 
 println("Compiling . . .")
-
-println("Compiling .xx . .")
 
 
 def compile = new MVSExec().pgm("IGYCRCTL").parm("LIB")
@@ -34,7 +32,7 @@ compile.dd(new DDStatement().name("SYSUT17").options("cyl space(5,5) unit(vio) n
 compile.dd(new DDStatement().name("SYSMDECK").options("cyl space(5,5) unit(vio) new"))
 compile.dd(new DDStatement().name("TASKLIB").dsn("IGY620.SIGYCOMP").options("shr"))
 compile.dd(new DDStatement().name("SYSPRINT").options("cyl space(5,5) unit(vio)  new"))
-compile.copy(new CopyToHFS().ddName("SYSPRINT").file(new File("/u/adcde/build/work/test1.log")))
+compile.copy(new CopyToHFS().ddName("SYSPRINT").file(new File("/u/adcde/out/test1.log")))
 def rc = compile.execute()
 
 if (rc > 4)
@@ -51,7 +49,7 @@ link.dd(new DDStatement().name("SYSLMOD").dsn("ADCDE.COB.LOADLIB(HELLO1)").optio
 link.dd(new DDStatement().name("TASKLIB").dsn("SYS1.LINKLIB").options("shr"))
 link.dd(new DDStatement().name("SYSLIB").dsn("CEE.SCEELKED").options("shr"))
 link.dd(new DDStatement().dsn("DSNC10.SDSNLOAD").options("shr"))
-link.copy(new CopyToHFS().ddName("SYSPRINT").file(new File("/u/adcde/build/work/sysprintlink.log")))
+link.copy(new CopyToHFS().ddName("SYSPRINT").file(new File("/u/adcde/out/sysprintlink1.log")))
 def rclink = link.execute()
 
 
