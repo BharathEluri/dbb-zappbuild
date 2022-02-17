@@ -18,7 +18,7 @@ import groovy.xml.*
 @Field BuildProperties props = BuildProperties.getInstance()
 
 // load build.properties
-def buildConf = "/u/adcde/poc-workspace/poc-app/scripts/testsbe/"
+def buildConf = "/u/adcde/dbb-zappbuild/scripts/testsbe/"
 props.load(new File("${buildConf}/properties/test5.properties"))
 
 
