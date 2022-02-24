@@ -1,6 +1,8 @@
 import com.ibm.dbb.build.*
 
-
+println("Copying source from zFS to PDS . . .")
+def copy = new CopyToPDS().file(new File("/u/mit0002/dbb-zappbuild/scripts/testsbe/cobol/test1.cbl")).dataset("ADCDE.BUILD.COBOL").member("HELLO1")
+copy.execute()
 
 def compile = new MVSExec().pgm("IGYCRCTL").parm("LIB")
 compile.dd(new DDStatement().name("SYSUT1").options("cyl space(5,5) unit(vio) new"))
