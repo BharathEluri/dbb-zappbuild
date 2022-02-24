@@ -30,6 +30,5 @@ compile.dd(new DDStatement().name("SYSLIN").dsn("mit0003.BUILD.OBJ(HELLO1)").opt
 def rc = compile.execute()
 
 if (rc > 4)
-	println("Compile failed!  RC=$rc")
 else
 	println("Compile successful!  RC=$rc")
