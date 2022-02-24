@@ -20,9 +20,9 @@ compile.dd(new DDStatement().name("SYSUT14").options("cyl space(5,5) unit(vio) n
 compile.dd(new DDStatement().name("SYSUT15").options("cyl space(5,5) unit(vio) new"))
 compile.dd(new DDStatement().name("SYSMDECK").options("cyl space(5,5) unit(vio) new"))
 compile.dd(new DDStatement().name("SYSPRINT").options("cyl space(5,5) unit(vio)  new"))
-compile.dd(new DDStatement().name("SYSLIB").dsn("ADCDE.BUILD.COBOL").options("shr"))
-compile.dd(new DDStatement().name("SYSIN").dsn("ADCDE.BUILD.COBOL(HELLO1)").options("shr"))
-compile.dd(new DDStatement().name("SYSLIN").dsn("ADCDE.BUILD.OBJ(HELLO1)").options("shr"))
+compile.dd(new DDStatement().name("SYSLIB").dsn("mit0002.BUILD.COBOL").options("shr"))
+compile.dd(new DDStatement().name("SYSIN").dsn("mit0002.BUILD.COBOL(HELLO1)").options("shr"))
+compile.dd(new DDStatement().name("SYSLIN").dsn("mit0002.BUILD.OBJ(HELLO1)").options("shr"))
 
 def rc = compile.execute()
 
