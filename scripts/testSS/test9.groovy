@@ -1,7 +1,7 @@
 import com.ibm.dbb.build.*
 
 println("Copying source from zFS to PDS . . .")
-def copy = new CopyToPDS().file(new File("/u/adcde/dbb-zappbuild/scripts/testsbe/cobol/test1.cbl")).dataset("ADCDE.BUILD.COBOL").member("HELLO1")
+def copy = new CopyToPDS().file(new File("/u/mit0003/dbb-zappbuild/scripts/testsSS/cobol/test1.cbl")).dataset("mit0003.BUILD.COBOL").member("HELLO1")
 copy.execute()
 
 
@@ -23,9 +23,9 @@ compile.dd(new DDStatement().name("SYSUT14").options("cyl space(5,5) unit(vio) n
 compile.dd(new DDStatement().name("SYSUT15").options("cyl space(5,5) unit(vio) new"))
 compile.dd(new DDStatement().name("SYSMDECK").options("cyl space(5,5) unit(vio) new"))
 compile.dd(new DDStatement().name("SYSPRINT").options("cyl space(5,5) unit(vio)  new"))
-compile.dd(new DDStatement().name("SYSLIB").dsn("ADCDE.BUILD.COBOL").options("shr"))
-compile.dd(new DDStatement().name("SYSIN").dsn("ADCDE.BUILD.COBOL(HELLO1)").options("shr"))
-compile.dd(new DDStatement().name("SYSLIN").dsn("ADCDE.BUILD.OBJ(HELLO1)").options("shr"))
+compile.dd(new DDStatement().name("SYSLIB").dsn("MIT0003.BUILD.COBOL").options("shr"))
+compile.dd(new DDStatement().name("SYSIN").dsn("MIT0003.BUILD.COBOL(HELLO1)").options("shr"))
+compile.dd(new DDStatement().name("SYSLIN").dsn("MIT0003.BUILD.OBJ(HELLO1)").options("shr"))
 
 def rc = compile.execute()
 
