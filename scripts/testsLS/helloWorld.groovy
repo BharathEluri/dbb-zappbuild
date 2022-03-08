@@ -1,15 +1,12 @@
 import com.ibm.dbb.build.*
 
-new CreatePDS().dataset("mit0002.BUILD.COBOL").options("cyl space(1,1) lrecl(80) dsorg(PO) recfm(F,B) dsntype(library) msg(1)").execute()
-new CreatePDS().dataset("mit0002.BUILD.OBJ").options("cyl space(1,1) lrecl(80) dsorg(PO) recfm(F,B) dsntype(library) msg(1)").execute()
-
 def copy = new CopyToPDS().file(new File("/u/mit0008/dbb-zappbuild/scripts/testsLS/cobol/test1.cbl")).dataset("mit0002.BUILD.COBOL").member("HELLO")
 copy.execute()
 
 
 def compile = new MVSExec().pgm("IGYCRCTL").parm("LIB")
-compile.dd(new DDStatement().name("SYSIN").dsn("USR1.BUILD.COBOL(HELLO)").options("shr"))
-compile.dd(new DDStatement().name("SYSLIN").dsn("USR1.BUILD.OBJ(HELLO)").options("shr"))
+compile.dd(new DDStatement().name("SYSIN").dsn("mit0002.BUILD.COBOL(HELLO)").options("shr"))
+compile.dd(new DDStatement().name("SYSLIN").dsn("mit0002.BUILD.OBJ(HELLO)").options("shr"))
 compile.dd(new DDStatement().name("SYSUT1").options("cyl space(5,5) unit(vio) new"))
 compile.dd(new DDStatement().name("SYSUT2").options("cyl space(5,5) unit(vio) new"))
 compile.dd(new DDStatement().name("SYSUT3").options("cyl space(5,5) unit(vio) new"))
