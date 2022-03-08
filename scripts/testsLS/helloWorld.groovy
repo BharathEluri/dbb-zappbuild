@@ -10,9 +10,6 @@ copy.setDataset("USR1.BUILD.COBOL")
 copy.setMember("HELLO")
 copy.execute()
 
-def compile = new MVSExec()
-compile.setPgm("IGYCRCTL")
-compile.setParm("LIB")
 
 def compile = new MVSExec().pgm("IGYCRCTL").parm("LIB")
 compile.dd(new DDStatement().name("SYSIN").dsn("USR1.BUILD.COBOL(HELLO)").options("shr"))
@@ -36,6 +33,8 @@ compile.dd(new DDStatement().name("SYSUT16").options("cyl space(5,5) unit(vio) n
 compile.dd(new DDStatement().name("SYSUT17").options("cyl space(5,5) unit(vio) new"))
 compile.dd(new DDStatement().name("SYSMDECK").options("cyl space(5,5) unit(vio) new"))
 compile.dd(new DDStatement().name("TASKLIB").dsn("IGY.V6R1M0.SIGYCOMP").options("shr"))
+compile.dd(new DDStatement().name("SYSPRINT").options("cyl space(5,5) unit(vio) new"))
+compile.copy(new CopyToHFS().ddName("SYSPRINT").file(new File("/u/usr1/build/helloworld.log")))
 
 def rc = compile.execute()
 
