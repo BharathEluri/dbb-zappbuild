@@ -27,9 +27,9 @@ compile.dd(new DDStatement().name("SYSUT14").options("cyl space(5,5) unit(vio) n
 compile.dd(new DDStatement().name("SYSUT15").options("cyl space(5,5) unit(vio) new"))
 compile.dd(new DDStatement().name("SYSUT16").options("cyl space(5,5) unit(vio) new"))
 compile.dd(new DDStatement().name("SYSUT17").options("cyl space(5,5) unit(vio) new"))
-compile.dd(new DDStatement().name("SYS00010").options("cyl space(5,5) unit(vio) new"))
+compile.dd(new DDStatement().name("SYSX").options("cyl space(5,5) unit(vio) new"))
 compile.dd(new DDStatement().name("SYSMDECK").options("cyl space(5,5) unit(vio) new"))
-compile.dd(new DDStatement().name("TASKLIB").dsn("IGY.V6R1M0.SIGYCOMP").options("shr"))
+compile.dd(new DDStatement().name("TASKLIB").dsn("IGY620.SIGYCOMP").options("shr"))
 compile.dd(new DDStatement().name("SYSPRINT").options("cyl space(5,5) unit(vio) new"))
 compile.copy(new CopyToHFS().ddName("SYSPRINT").file(new File("/u/mit0002/build/helloworld.log")))
 
