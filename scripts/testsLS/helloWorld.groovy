@@ -1,6 +1,6 @@
 import com.ibm.dbb.build.*
 
-def copy = new CopyToPDS().file(new File("/u/mit0008/dbb-zappbuild/scripts/testsLS/cobol/test1.cbl")).dataset("mit0002.BUILD.COBOL").member("HELLO")
+def copy = new CopyToPDS().file(new File("/u/mit0002/dbb-zappbuild/scripts/testsLS/cobol/test1.cbl")).dataset("mit0002.BUILD.COBOL").member("HELLO")
 copy.execute()
 
 
