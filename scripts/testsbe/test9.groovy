@@ -1,3 +1,5 @@
+package scripts.testsbe;
+
 import com.ibm.dbb.build.*
 
 println("Copying source from zFS to PDS . . .")
