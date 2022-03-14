@@ -5,15 +5,15 @@
 //*              3) DB2
 //*
 //* > umsetzen DB2 PreCompiler
-//* > hier wird die Source verÃ¤ndert und ein DBRM erzeugt (DataBaseRequestModule)
-//*	> Das DBRM auf eine "kÃ¼nstliche" Datei schreiben
+//* > hier wird die Source verändert und ein DBRM erzeugt (DataBaseRequestModule)
+//*	> Das DBRM auf eine "künstliche" Datei schreiben
 //* > Wird dann beim //DBRMCOPY in das Nexus kopiert
 //*
 //* Vars: &COB3DYN &@DB2 &DB2OPT &DB2EXIT &DB2LOAD &DB2DCLG &C1ELEMENT
 //* Input: SYSIN DSN=&&ELMOUT
 //* Output: SYSCIN DSN=&&SYSCIN; DBRMLIB DSN=&&DBRM(&C1ELEMENT)
-//* SYSPRINT &&SQLLIST wird vorher im PREALLOC-Step erstellt (PGM?)  (direkt in diesen SQL step zu erstellen)
-//* SYSIN &&ELMOUT wird im step CONWRITE erstellt (direkt in diesen SQL step zu erstellen)
+//* SYSPRINT &&SQLLIST wird vorher im PREALLOC-Step erstellt (PGM?)
+//* SYSIN &&ELMOUT wird im step CONWRITE erstellt
 //*
 //*
 //* //SYSTERM  DD DUMMY (im SQL step)
