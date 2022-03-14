@@ -6,7 +6,7 @@
 //*
 //* > umsetzen DB2 PreCompiler
 //* > hier wird die Source verändert und ein DBRM erzeugt (DataBaseRequestModule)
-//*	> Das DBRM auf eine "künstliche" Datei schreiben
+//* > Das DBRM auf eine "künstliche" Datei schreiben
 //* > Wird dann beim //DBRMCOPY in das Nexus kopiert
 //*
 //* Vars: &COB3DYN &@DB2 &DB2OPT &DB2EXIT &DB2LOAD &DB2DCLG &C1ELEMENT
@@ -16,9 +16,11 @@
 //* SYSIN &&ELMOUT wird im step CONWRITE erstellt
 //*
 //*
-//* //SYSTERM  DD DUMMY (im SQL step)
-//* //SYSUT1   BUFNO=1 (ohne BUFNO)
-//* (CYL,(1,1,1)) 
+//* //SYSTERM  DD DUMMY muss umgesetzt werden  -> BPXWDYN nutzen
+//* //SYSUT1   BUFNO=1 (versuchen wegzulassen)
+//* (CYL,(1,1,1)) ? primary - secondary - indexspace
+//* SYSPRINT sysout=* (ausprobieren)
+//*
 //*
 //*-------------------------------------------------------------------
 //CTLEXEC  IF RC = 00 THEN
@@ -118,13 +120,13 @@ sql.dd(new DDStatement().name("{props.srcPDS(memember").options("trk space(15,15
 //* -> COMPILATION COBOL AVEC TRANSLATION CICS, PRE-COMPILE DB2
 //*    EXEC SI : 1) RC OK
 //*
-//* > Compiler in diesem Beispiel CWPCMAIN weil nicht von auÃŸen Ã¼berschrieben
+//* > Compiler in diesem Beispiel CWPCMAIN weil nicht von außen überschrieben
 //* > Hier die Datei &&ELMNEW beachten, Wird vorher mit Inhalt belegt
 //*
 //* Vars: &COMPILER &COBOPT1 &COBOPT2 &COBODEV &COB3DYN &@CIC &@XDL &@DB2 
 //*       &C1ELEMENT &COCPUSR1 &COCPUSR2 &COCPUSR3 &COBSHDM &COBODMM &COBCICM
-//*       &COBASFM &COBPRNTM &DB2DCLG &COCPSTG1 &COCPSTG2 &COSTGPCP &COSTGRCP &COBLIB
-//*       &ABNLIB &CICSLOAD &DB2EXIT &DB2LOAD &ABNDDIOF &@BTC
+//*       &COBASFM &COBPRNTM &DB2DCLG &COCPSTG1 &COCPSTG2 &COSTGPCP &COSTGRCP
+//*       &COBLIB &ABNLIB &CICSLOAD &DB2EXIT &DB2LOAD &ABNDDIOF &@BTC
 //*
 //* Input: SYSIN DSN=&&ELMOUT oder DSN=&&SYSCIN oder &&SYSPUNCH 
 //*        oder &&ELMNEW oder &&ELMOUT
@@ -291,7 +293,7 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //*
 //* > Binder / Linker / LinkageEditor
 //* > Ausgabe von IEWL ist der logische Name SYSLMOD
-//* > anstatt DSN=&LOADLIB(&C1ELEMENT) einen "kÃ¼nstlichen" Namen
+//* > anstatt DSN=&LOADLIB(&C1ELEMENT) einen "künstlichen" Namen
 //* > Nach dem //DBRMCOPY wird das Binary von der SYSLMOD in
 //* > das Nexus geschrieben (TAR Files)
 //*
@@ -300,6 +302,10 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //*       &LKDSLIB2 &LKDSLIB3 &LKDSLIB4 &LKDSLIB5 &LKDSLIB6 &LSTG2LD
 //*       &LSTGRLD &LSTGPLD &LKDSLIN1 &LKDSLIN2 &LKDSLIN3 &LKDSLIN4
 //*       &LKDSLIN5 &LKDSLIN6 &CICLKINC &CICLKMBR
+//* Input: SYSLIN DSN=&&SYSLIN und andere
+//* Output: SYSLMOD DSN=&LOADLIB(&C1ELEMENT)
+//*
+//* SYSPRINT DSN=&&LKD1LST -> PREALLOC
 //*
 //*------------------------------------------------------------------
 //CTLEXEC  IF RC  LE  04  THEN
@@ -447,7 +453,7 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //*              2) LK2=Y
 //* > Binder / Linker / LinkageEditor
 //* > Ausgabe von IEWL ist der logische Name SYSLMOD
-//* > anstatt DSN=&LOADLIB(&C1ELEMENT) einen "kÃ¼nstlichen" Namen
+//* > anstatt DSN=&LOADLIB(&C1ELEMENT) einen "künstlichen" Namen
 //* > Nach dem //DBRMCOPY wird das Binary von der SYSLMOD in
 //* > das Nexus geschrieben (TAR Files)
 //*
@@ -456,6 +462,9 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //*        &LKDSLIB4 &LKDSLIB5 &LKDSLIB6 &LOADLIB &LSTG2LD &LSTG2LD2
 //*        &LSTGRLD &LSTGRLD2 &LSTGPLD &LSTGPLD2 &LKDSLIN1 
 //*        &LKDSLIN2 &LKDSLIN3 &LKDSLIN4 &LKDSLIN5 &LKDSLIN6
+//*
+//* Input: SYSLIN DSN=&&SYSLIN + syslib-Member
+//* Output: SYSLMOD DSN=&LOADLIB2(&C1ELEMENT)
 //*
 //*-------------------------------------------------------------------
 //CTLEXEC  IF RC  LE  04  THEN
@@ -535,13 +544,16 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //*              2) DB2
 //*
 //* > umsetzen mit einfachem IEBCOPY, nicht CZX2PZQL verwenden
-//*	> //SYSIN DD *   
-//*	>     COPY OUTDD=DDOUT3,INDD=DDIN3 
-//*	>     S M=((MEMBERNAME,R))           
-//*	> /* 
+//* > //SYSIN DD *
+//* >     COPY OUTDD=DDOUT3,INDD=DDIN3
+//* >     S M=((MEMBERNAME,R))
+//* > /*
 //* > Richtig ist das DBRM in das Nexus zu kopieren und nicht auf eine Datei
 //*
 //* Vars: &@DB2 &@@BASEC &C1ELEMENT &DB2RMLB
+//*
+//* Input: SYSUT1 DSN=&&DBRM(&C1ELEMENT)
+//* Output: SYSUT2 DSN=&DB2RMLB(&C1ELEMENT)
 //*
 //*-------------------------------------------------------------------
 //CTLEXEC  IF RC  LE  04  THEN

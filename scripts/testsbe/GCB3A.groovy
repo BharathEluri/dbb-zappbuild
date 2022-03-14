@@ -31,6 +31,9 @@ def RC = 0
 if (RC ==0 && ${props.COB3DYN}== "N" && ${props.@DB2} == "Y") {
 	sql.execute()
 }
+
+
+
 def createTrnCommand(buildFile, logicalFile, member, logFile) {
 }
 
