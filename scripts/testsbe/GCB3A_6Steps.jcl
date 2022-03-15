@@ -5,8 +5,8 @@
 //*              3) DB2
 //*
 //* > umsetzen DB2 PreCompiler
-//* > hier wird die Source verändert und ein DBRM erzeugt (DataBaseRequestModule)
-//* > Das DBRM auf eine "künstliche" Datei schreiben
+//* > hier wird die Source veraendert und ein DBRM erzeugt (DataBaseRequestModule)
+//* > Das DBRM auf eine "kuenstliche" Datei schreiben
 //* > Wird dann beim //DBRMCOPY in das Nexus kopiert
 //*
 //* Vars: &COB3DYN &@DB2 &DB2OPT &DB2EXIT &DB2LOAD &DB2DCLG &C1ELEMENT
@@ -100,7 +100,7 @@
 //* -> COMPILATION COBOL AVEC TRANSLATION CICS, PRE-COMPILE DB2
 //*    EXEC SI : 1) RC OK
 //*
-//* > Compiler in diesem Beispiel CWPCMAIN weil nicht von außen überschrieben
+//* > Compiler in diesem Beispiel CWPCMAIN weil nicht von aussen ueberschrieben
 //* > Hier die Datei &&ELMNEW beachten, Wird vorher mit Inhalt belegt
 //*
 //* Vars: &COMPILER &COBOPT1 &COBOPT2 &COBODEV &COB3DYN &@CIC &@XDL &@DB2
@@ -273,7 +273,7 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //*
 //* > Binder / Linker / LinkageEditor
 //* > Ausgabe von IEWL ist der logische Name SYSLMOD
-//* > anstatt DSN=&LOADLIB(&C1ELEMENT) einen "künstlichen" Namen
+//* > anstatt DSN=&LOADLIB(&C1ELEMENT) einen kuenstlichen Namen
 //* > Nach dem //DBRMCOPY wird das Binary von der SYSLMOD in
 //* > das Nexus geschrieben (TAR Files)
 //*
@@ -433,7 +433,7 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //*              2) LK2=Y
 //* > Binder / Linker / LinkageEditor
 //* > Ausgabe von IEWL ist der logische Name SYSLMOD
-//* > anstatt DSN=&LOADLIB(&C1ELEMENT) einen "künstlichen" Namen
+//* > anstatt DSN=&LOADLIB(&C1ELEMENT) einen kuenstlichen Namen
 //* > Nach dem //DBRMCOPY wird das Binary von der SYSLMOD in
 //* > das Nexus geschrieben (TAR Files)
 //*
