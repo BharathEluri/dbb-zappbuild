@@ -48,26 +48,6 @@
 //ND-TST1  ENDIF
 //ENDCTL   ENDIF
 //*
-[
-def sql = new MVSExec().pgm("DSNHPC").parm(&DB2OPT)
-sql.dd(new DDStatement().name("TASKLIB").dsn(&DB2EXIT).options("shr")
-sql.dd(new DDStatement().dsn(&DB2LOAD).options("shr")
-sql.dd(new DDStatement().name("SYSPRINT").dsn(&&SQLLIST).options("old pass"))
-sql.dd(new DDStatement().name("SYSUT1").options("trk space(15,15) unit(vio) new"))
-sql.dd(new DDStatement().name("SYSUT2").options("trk space(5,5) unit(vio) new"))
-sql.dd(new DDStatement().name("SYSLIB").dsn(&DB2DCLG).options("shr"))
-sql.dd(new DDStatement().name("DBRMLIB").dsn(&&DBRM(&C1ELEMENT))
-.options("cyl space(1,1,1) unit(work) new recfm(F,B) blksize(80)").pass(true))
-sql.dd(new DDStatement().name("SYSIN").dsn(${props.srcPDS(member)).options("old delete")).pass(true)
-sql.dd(new DDStatement().name("SYSCIN").dsn(&&SYSCIN).pass(true))
-
-
-]
-[/*
-def sqlcopy = new MVSExec().pgm("IEBGENER")
-sql.dd(new DDStatement().name("SYSCIN").options("trk space(5,5) unit(vio) new"))
-sql.dd(new DDStatement().name("{props.srcPDS(memember").options("trk space(15,15) unit(vio) new"))
-*/]
 
 
 //********************************************************************
@@ -123,12 +103,12 @@ sql.dd(new DDStatement().name("{props.srcPDS(memember").options("trk space(15,15
 //* > Compiler in diesem Beispiel CWPCMAIN weil nicht von außen überschrieben
 //* > Hier die Datei &&ELMNEW beachten, Wird vorher mit Inhalt belegt
 //*
-//* Vars: &COMPILER &COBOPT1 &COBOPT2 &COBODEV &COB3DYN &@CIC &@XDL &@DB2 
+//* Vars: &COMPILER &COBOPT1 &COBOPT2 &COBODEV &COB3DYN &@CIC &@XDL &@DB2
 //*       &C1ELEMENT &COCPUSR1 &COCPUSR2 &COCPUSR3 &COBSHDM &COBODMM &COBCICM
 //*       &COBASFM &COBPRNTM &DB2DCLG &COCPSTG1 &COCPSTG2 &COSTGPCP &COSTGRCP
 //*       &COBLIB &ABNLIB &CICSLOAD &DB2EXIT &DB2LOAD &ABNDDIOF &@BTC
 //*
-//* Input: SYSIN DSN=&&ELMOUT oder DSN=&&SYSCIN oder &&SYSPUNCH 
+//* Input: SYSIN DSN=&&ELMOUT oder DSN=&&SYSCIN oder &&SYSPUNCH
 //*        oder &&ELMNEW oder &&ELMOUT
 //*        ( &&ELMOUT wird im Step //CONWRITE  EXEC PGM=CONWRITE erstellt
              &&EMLNEW wird im Step //GNOPTION EXEC PGM=IEBGENER mit Inhalt erstellt)
@@ -286,7 +266,7 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //ENDCTL   ENDIF
 //*
 
-                                                
+
 //*******************************************************************
 //* -> LINK-EDIT NUMERO 1
 //*    EXEC SI : 1) RC OK
@@ -297,7 +277,7 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //* > Nach dem //DBRMCOPY wird das Binary von der SYSLMOD in
 //* > das Nexus geschrieben (TAR Files)
 //*
-//* Vars: &LKDOPT &LOADLIB &C1ELEMENT &@CIC &LKDCIC &@BTC &LKDBTC 
+//* Vars: &LKDOPT &LOADLIB &C1ELEMENT &@CIC &LKDCIC &@BTC &LKDBTC
 //*       &CEELKED &@DB2 &DB2LOAD &@XDL &CICSLOAD &LKDSIMS &LKDSLIB1
 //*       &LKDSLIB2 &LKDSLIB3 &LKDSLIB4 &LKDSLIB5 &LKDSLIB6 &LSTG2LD
 //*       &LSTGRLD &LSTGPLD &LKDSLIN1 &LKDSLIN2 &LKDSLIN3 &LKDSLIN4
@@ -445,7 +425,7 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //ENDCTL   ENDIF
 //*
 
-                                                
+
 //********************************************************************
 //* -> LINK-EDIT NUMERO 2 : ATTACHEMENT DLI ET LOAD DANS BTCHLOA2
 //*    SOUS-PROGRAMME DB2 APPELE EN CONTEXTE DLI
@@ -460,7 +440,7 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //* Vars: &@LK2 &LKDOPT &LOADLIB2 &C1ELEMENT &@BTC &LKDBTC &CEELKED
 //*        &LKDSIMS &DB2LOAD &CICSLOAD &LKDSLIB1 &LKDSLIB2 &LKDSLIB3
 //*        &LKDSLIB4 &LKDSLIB5 &LKDSLIB6 &LOADLIB &LSTG2LD &LSTG2LD2
-//*        &LSTGRLD &LSTGRLD2 &LSTGPLD &LSTGPLD2 &LKDSLIN1 
+//*        &LSTGRLD &LSTGRLD2 &LSTGPLD &LSTGPLD2 &LKDSLIN1
 //*        &LKDSLIN2 &LKDSLIN3 &LKDSLIN4 &LKDSLIN5 &LKDSLIN6
 //*
 //* Input: SYSLIN DSN=&&SYSLIN + syslib-Member

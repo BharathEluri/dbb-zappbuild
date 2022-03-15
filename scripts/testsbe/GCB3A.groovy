@@ -4,6 +4,21 @@ import com.ibm.dbb.build.MVSExec
 
 @Field BuildProperties props = BuildProperties.getInstance()
 
+//CLI=&C1ENVMNT(1,1)
+//TYP=&C1TY(4,4)
+//IDXTAB=&C1PRGRP(3,2)
+//TABBTC='YYYYYYYNNNNNNNNNNNNNNNNN'
+//TABDB2='NYNYYNYNNNNYNYNNYNYNNYNY'
+//TABXDL='NNNNNYYNNNNNYYNNNYYNNNYY'
+//TABCIC='NNNNNNNNNNYYYYNYYYYNYYYY'
+//TABLK2='NNNNYNNNNNNNNNNNNNNNNNNN'
+//BTC=&@@TABBTC(&@#IDXTAB,1)
+//CIC=&@@TABCIC(&@#IDXTAB,1)
+//DB2=&@@TABDB2(&@#IDXTAB,1)
+//LK2=&@@TABLK2(&@#IDXTAB,1)
+//XDL=&@@TABXDL(&@#IDXTAB,1)
+//DB2@VERS='VERSION(&C1FOOTPRT(48,16))'
+
 MVSExec sql = createSqlCommand(buildFile, logicalFile, member, logFile)
 MVSExec trn = createTrnCommand(buildFile, logicalFile, member, logFile)
 MVSExec compile = createCompileCommand(buildFile, logicalFile, member, logFile)
