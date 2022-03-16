@@ -48,7 +48,16 @@
 //ND-TST1  ENDIF
 //ENDCTL   ENDIF
 //*
-
+[
+def sql = new MVSExec().pgm("DSNHPC").parm(&DB2OPT)
+sql.dd(new DDStatement().name("SYSUT1").options("trk space(15,15) unit(vio) new"))
+sql.dd(new DDStatement().name("SYSUT2").options("trk space(5,5) unit(vio) new"))
+sql.dd(new DDStatement().name("SYSLIB").dsn(&DB2DCLG).options("shr"))
+sql.dd(new DDStatement().name("DBRMLIB").dsn(&&DBRM(&C1ELEMENT))
+.options("cyl space(1,1,1) unit(work) new recfm(F,B) blksize(80)").pass(true))
+sql.dd(new DDStatement().name("TASKLIB").dsn(&DB2EXIT).options("shr")
+sql.dd(new DDStatement().dsn(&DB2EXIT).options("shr")
+]
 
 //********************************************************************
 //* -> TRANSLATION CICS
@@ -111,7 +120,7 @@
 //* Input: SYSIN DSN=&&ELMOUT oder DSN=&&SYSCIN oder &&SYSPUNCH
 //*        oder &&ELMNEW oder &&ELMOUT
 //*        ( &&ELMOUT wird im Step //CONWRITE  EXEC PGM=CONWRITE erstellt
-             &&EMLNEW wird im Step //GNOPTION EXEC PGM=IEBGENER mit Inhalt erstellt)
+//*        &&ELMNEW wird im Step //GNOPTION EXEC PGM=IEBGENER mit Inhalt erstellt)
 //* Output: SYSLIN DSN=&&SYSLIN?
 //*
 //* SYSPRINT DSN=&&COB0LST wird in Step PREALLOC erstellt
@@ -212,7 +221,6 @@
 //         DD DISP=SHR,DSN=&CICSLOAD    *** CICS TS (EXEC CICS + DLI)
 //IF_TST1  IF &@DB2 = Y THEN
 //         DD DISP=SHR,DSN=&DB2EXIT     *** DB2
-//***      DD DISP=SHR,DSN=&DB2PTFS     *** TEMP PTFS DB2
 //         DD DISP=SHR,DSN=&DB2LOAD     *** DB2
 //ND-TST1  ENDIF
 //SYSUT1   DD UNIT=VIO,SPACE=(CYL,(1,1))
@@ -273,7 +281,7 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //*
 //* > Binder / Linker / LinkageEditor
 //* > Ausgabe von IEWL ist der logische Name SYSLMOD
-//* > anstatt DSN=&LOADLIB(&C1ELEMENT) einen kuenstlichen Namen
+//* > anstatt DSN=&LOADLIB(&C1ELEMENT) einen "kuenstlichen" Namen
 //* > Nach dem //DBRMCOPY wird das Binary von der SYSLMOD in
 //* > das Nexus geschrieben (TAR Files)
 //*
@@ -433,14 +441,14 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //*              2) LK2=Y
 //* > Binder / Linker / LinkageEditor
 //* > Ausgabe von IEWL ist der logische Name SYSLMOD
-//* > anstatt DSN=&LOADLIB(&C1ELEMENT) einen kuenstlichen Namen
+//* > anstatt DSN=&LOADLIB(&C1ELEMENT) einen "kuenstlichen" Namen
 //* > Nach dem //DBRMCOPY wird das Binary von der SYSLMOD in
 //* > das Nexus geschrieben (TAR Files)
 //*
 //* Vars: &@LK2 &LKDOPT &LOADLIB2 &C1ELEMENT &@BTC &LKDBTC &CEELKED
 //*        &LKDSIMS &DB2LOAD &CICSLOAD &LKDSLIB1 &LKDSLIB2 &LKDSLIB3
 //*        &LKDSLIB4 &LKDSLIB5 &LKDSLIB6 &LOADLIB &LSTG2LD &LSTG2LD2
-//*        &LSTGRLD &LSTGRLD2 &LSTGPLD &LSTGPLD2 &LKDSLIN1
+//*        &LSTGRLD &LSTGRLD2 &LSTGPLD &LSTGPLD2 &LKDSLIN1 &LKDSLIN2
 //*        &LKDSLIN2 &LKDSLIN3 &LKDSLIN4 &LKDSLIN5 &LKDSLIN6
 //*
 //* Input: SYSLIN DSN=&&SYSLIN + syslib-Member
