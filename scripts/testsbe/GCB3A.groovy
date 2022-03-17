@@ -41,8 +41,9 @@ def createSqlCommand(buildFile, logicalFile, member, logFile) {
 	// sql.dd(new DDStatement().name("DBRMLIB").dsn("&&DBRM(${props.C1ELEMENT})").options("cyl space(1,1,1) unit(work) new recfm(F,B) blksize(80)").pass(true)))
 	// com.ibm.dbb.build.BuildException: BGZTK0016E An error occurred running BPXWDYN command 'al
 	// loc dd(DBRMLIB) dsn(&&DBRM(HELLO10)) cyl space(1,1,1) unit(work) new recfm(F,B) blksize(80)'.
-	sql.dd(new DDStatement().name("DBRMLIB").dsn("${props.dbrmDsn}(${props.member})").options("shr"))
-	sql.dd(new DDStatement().name("SYSIN").dsn("&&ELEMOUT").options('shr'))
+	sql.dd(new DDStatement().name("DBRMLIB").dsn("${props.dbrmDsn}(${props.C1ELEMENT})").options("shr"))
+	//sql.dd(new DDStatement().name("SYSIN").dsn("&&ELEMOUT").options('shr'))
+	sql.dd(new DDStatement().name("SYSIN").dsn("${props.sysinDsn}(${props.C1ELEMENT})").options("shr"))	
 	sql.dd(new DDStatement().name("SYSCIN").dsn("&&SYSCIN").options('cyl space(5,5) unit(vio) new').pass(true))
 	//im JCL ist SYSIN &&ELEMOUT, SYSCIN ist &&SYSCIN
 	//im dbb ist SYSIN ${hlq}.COBOL($member) Bespiel SAMPAPP.BUILD.COBOL(XXXX),   SYSCIN ist  &&SYSCIN
