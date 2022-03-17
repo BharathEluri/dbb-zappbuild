@@ -23,7 +23,7 @@ props.load(new File("${buildConf}/properties/testx10.properties"))
 
 
 println("Copying source from zFS to PDS . . .")
-def copy = new CopyToPDS().file(new File("${props.fileName}")).dataset("${props.dsn}").member("${props.member}")
+def copy = new CopyToPDS().file(new File("${props.fileName}")).dataset("${props.sysinDsn}").member("${props.C1ELEMENT}")
 copy.execute()
 
 println("Pre Compiling . . .")
