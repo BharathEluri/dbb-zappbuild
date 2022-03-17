@@ -35,6 +35,17 @@ def createSqlCommand(buildFile, logicalFile, member, logFile) {
 	sql.dd(new DDStatement().name("SYSCIN").dsn("&&SYSCIN").options('cyl space(5,5) unit(vio) new').pass(true))
 }
 
+// 1) dbrmlib temporaere datei als pds mit member
+// 2) mit welchem programm kann eine ein member in eine sequentielle datei kopiert werden
+// 3) Muss diese Logik verwendet werden oder 
+//     IDXTAB=&C1PRGRP(3,2)
+//     TABLK2=NNNNYNNNNNNNNNNNNNNNNNNN
+//     BTC=&@@TABBTC(&@#IDXTAB,1)
+// 4)
+//   DB2VERS='VERSION(&C1FOOTPRT(48,16))'
+    
+
+
 
 def createTrnCommand(buildFile, logicalFile, member, logFile) {
 }
