@@ -2,10 +2,28 @@ JCL to Groovy
 
 1. EXEC PGM=  ,PARM=
    MVSExec().pgm("").parm("")
+
 2. DD
    new DDStatement().name("").dsn("").options("")
+
 3. //SYSTERM  DD DUMMY
    new DDStatement().name("SYSTERM").options("DUMMY")
+
+4. TASKLIB
+   STEPLIB
+
+5. DSN=&&SQLLIST
+   dsn("&&SQLLIST")
+
+6. //* Kommentar
+   // Kommentar
+
+7. //IF_TST1  IF &COB3DYN = N    THEN
+   //IF_TST2  IF &@DB2 = Y THEN
+
+   if ("${props.COB3DYN}"== "N" && "${props.@DB2}" == "Y") {
+
+   }
 
 
 
