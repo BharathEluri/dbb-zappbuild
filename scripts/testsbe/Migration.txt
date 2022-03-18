@@ -25,7 +25,410 @@ JCL to Groovy
 
    }
 
+8. //SYSUT1   DD UNIT=VIO,SPACE=(TRK,(15,15)),DCB=BUFNO=1
+   sql.dd(new DDStatement().name("SYSUT1").options("tracks space(15,15) unit(vio) new"))
 
+9. BUFNO, MONITOR, FOOTPRT
+   zu skippen
+
+10. //DBRMLIB  DD DSN=&&DBRM(&C1ELEMENT),DISP=(,PASS),
+   sql.dd(new DDStatement().name("DBRMLIB").dsn("${props.dbrmDsn}(${props.C1ELEMENT})").options("shr"))
+
+   // feste datei kuenstlichen name ${props.dbrmDsn},  danach kann feste datei deleted werden
+
+11. //SYSLIB   DD MONITOR=COMPONENTS,DISP=SHR,DSN=&DB2DCLG
+    sql.dd(new DDStatement().name("SYSLIB").dsn("${props.DB2DCLG}").options("shr"))
+
+    // werden DB2DCLG dsn  immer vorher vorhanden sein ? oder werden SQL INCLUDEs (DCLGENS) im repository vorhanden sein ?
+    // im repository werden vorhanden sein müssen
+
+12. //SYSIN    DD DSN=&&ELMOUT,DISP=(OLD,DELETE)
+    sql.dd(new DDStatement().name("SYSIN").dsn("${props.sysinDsn}(${C1ELEMENT})").options("shr"))
+
+    // statt elemout ist ${props.sysinDsn}(${C1ELEMENT}) zu verwenden 	
+
+13. In props Dateien      DB2@VERS='VERSION(&C1FOOTPRT(48,16))'
+     DB2@VERS = VERSION(AUTO) zu verwenden
+
+14. Muss diese Logik verwendet werden oder (nein) (einzelwerte für BTC müssten gelifert werden)
+	//     IDXTAB=&C1PRGRP(3,2)
+	//     TABLK2=NNNNYNNNNNNNNNNNNNNNNNNN
+	//     BTC=&@@TABBTC(&@#IDXTAB,1)
+
+15.  mit welchem programm kann eine sequentielle datei nach feste datei kopiert werden
+     mit iebgener
+
+------------------------------------------------------------------------------------------------------------
+Auf dem MainFrame muss man eine Programm-Source mindestens zuerst Compilieren
+und dann Linken, oder auch Binden, genannt, damit man ein Binary
+erhält, welches man ausführen kann.
+
+Dazu gibt es auf dem MainFrame eine Skript-Sprache namens JCL
+JCL bedeutet Job Conrol Language
+
+Ein Endevor Processor ist ähnlich wie die ScriptLanguage JCL
+
+Grober Aufbau der Skript-Sprache JCL:
+
+Zeilen die mit "//*" beginnen sind Kommentarzeilen
+	diese einfach alle löschen
+	
+Anweisungszeilen/Statements beginnen immer it "//"
+
+Ein Script besteht aus ein bis mehreren Schritten, auch "Steps" genannt
+Ein Step hat immer einen Step-Name
+
+In jedem Step wird ein Programm aufgerufen
+	Beispiel: //STEPNAME EXEC PGM=Programm-Name,Parameter...
+	MAXRC=n einfach ignorieren
+	
+Ein Programm braucht immer Zuordnungen von physischen Datei-Namen zu logischen Datei-Namen
+	Beispiel:	c:\Work\Test.txt ist ein physischer Datei-Name
+				SYSIN ist ein logisher Datei-Name
+	Die Zuordnung eines logischem zu einem physischen Datei-Name ist:
+			//SYSIN DD DSN="physicher Datei-Name",
+			//         Parameter...						(DD-Statement)
+			Parameter können auf Folgezeilen stehen
+			
+	Es können viele physische Datein einem logischen Datei-Namen zugewiesen werden
+			//SYSIN DD DSN="physicher Datei-Name",Parameter...	
+			//      DD DSN="2. physischer Datei-Name",Parameter
+			//      DD DSN="3. physischer Datei-Name",Parameter
+	Das nennt man in einer JCL auch eine Verkettung von Dateien
+	
+	Es gibt sogenannte "Instream-Dateien"
+		Das sind keine physischen Datein, denn ihr Inhalt ist "Instream"
+		Das bedeutet der Inhalt steht direkt in dem Skript
+		Beispiel:
+			//SYSUT1 DD *
+			 Inhalt der Instream-Datei
+			 Inhalt der Instream-Datei
+			 ...
+			/*
+		Solch ein Konstrukt muss auf eine physische Datei geschrieben werden
+		und dann muss diese physische Datei dem Programm zugewiesen werden
+		Der Name dieser physischen Datei kann von Euch gewählt werden, er muss eindeutig sein
+		das bedeutet, dieser Name darf nur einmal in einem Skript vorkommen
+		
+		In groovy werden physische Dateien mit einem BPXWDYN logischen
+		Datei-Namen zugeordnet
+		
+		Parameter wie MONITOR= und FOOTPRT= weglassen
+
+Man kann Variablen in einem Skript setzen, diese sind dann Default Werte
+Solche Variablen nennen wir auch "Properties"
+Diese Variablen können dann durch Properties, welche von außen beim Aufruf hinzukommen
+überschrieben werden
+
+	Beispiel:
+	//GCB3A    PROC DSC1='DESCRIPTIF DU PROCESSEUR GROUPE',
+	//              DSC2='SUITE DESCRIPTIF               ',
+	//*
+	//*         VARIABLES GLOBALES (COMMENCENT PAR "§")
+	//          BASEB='SYB&C1STGID.',    *** ALIAS BASE
+	//          BASEC='SYC&C1STGID.',    *** ALIAS CUSTO
+
+
+Variablen erkennt man daran, dass sie immer mit EINEM "&" geginnen
+Wenn ein Literal mit "&&" beginnt handelt es sich NICHT um eine Variable, dazu später mehr
+	Beispiel:
+	//SYSLIN    DD  DISP=SHR,DSN=&OBJELIB.(&ELEM.)
+		&OBJELIB.	ist eine Variable/Property
+		&ELEM.		ist eine Variable/Property
+		
+	//SYSLIN    DD  DISP=SHR,DSN=&&OBJELIB.(&ELEM.)	
+		&&OBJELIB.	ist KEINE Variable/Property
+		&ELEM.		ist eine Variable/Property	
+	
+	Bei &PROPERTY.. können zwei Punkt hinter dem Variablen Name stehen,
+	dann muss nach der Auflösung der Variablen ein Punkt dahinter stehen bleiben
+	
+	Beispiele:
+		OBJELIB = "MAKEIT"
+		//SYSLIN  DD DISP=SHR,DSN=&OBJELIB..MAKEIT
+			Ergebnis ==> MAKEIT.MAKEIT
+			
+		//SYSLIN  DD DISP=SHR,DSN=&OBJELIB.MAKEIT
+			Ergebnis ==> MAKEITMAKEIT
+
+Es gibt IF Anweisungen in den Skripten
+diese müssen natürlich erhalten bleiben um die geforderte Logik abzubilden
+
+Es gibt zusätzliche Bedingungsanweisungen wie z.B. EXECIF(.....)
+Diese steuern, ob ein Sep ausgeführt wird oder nicht
+Mehrere Angaben in einem EXECIF(....) sind immer mit "UND" verknüpft
+
+Im zAPPBuild in dem COBOL.groovy findet Ihr z.B.
+
+/*
+ * createCompileCommand - creates a MVSExec command for compiling the COBOL program (buildFile)
+ */
+def createCompileCommand(String buildFile, LogicalFile logicalFile, String member, File logFile) {
+	String parms = createCobolParms(buildFile, logicalFile)
+	String compiler = props.getFileProperty('cobol_compiler', buildFile)
+
+	// define the MVSExec command to compile the program
+	MVSExec compile = new MVSExec().file(buildFile).pgm(compiler).parm(parms)
+
+Hier wird alles vorbereitet/generiert um den Compiler aufzurufen
+
+###################################################################
+
+In einer JCL schaut das folgendermaßen aus:
+
+//*-----------------------------------------------------------------
+//*- Enterprise COBOL 5 Compiler                                   -
+//*-----------------------------------------------------------------
+//COBOL   EXEC  PGM=IGYCRCTL,REGION=0M
+//*TEPLIB   DD  DISP=SHR,DSN=IGY520.SIGYCOMP
+//SYSUT1    DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT2    DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT3    DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT4    DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT5    DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT6    DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT7    DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT8    DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT9    DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT10   DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT11   DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT12   DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT13   DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT14   DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSUT15   DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSMDECK  DD  UNIT=SYSALLDA,SPACE=(CYL,(5,5))
+//SYSPUNCH  DD  DUMMY
+//SYSPRINT  DD  SYSOUT=*
+//SYSLIB    DD  DISP=SHR,DSN=ADCDC.SOURCE.COBOL
+//SYSIN     DD  *
+       CBL TEST
+       CBL NOTEST
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.    HELLOCOB.
+       ENVIRONMENT    DIVISION.
+       PROCEDURE      DIVISION.
+           DISPLAY 'Hello World'.
+           GOBACK.
+/*
+//SYSLIN    DD  DISP=SHR,DSN=&OBJELIB.(&ELEM.)
+
+
+In COBOL.groovy findet Ihr:
+
+/*
+ * createLinkEditCommand - creates a MVSExec xommand for link editing the COBOL object module produced by the compile
+ */
+def createLinkEditCommand(String buildFile, LogicalFile logicalFile, String member, File logFile) {
+
+Hier wird alles vorbereitet um den Linker/Binder auszuführen.
+
+Hier ein Beispiel für den Linker/Binder um ein Binary zu erzeugen:
+
+//*-----------------------------------------------------------------
+//*- Linkage Editor for COBOL programs                             -
+//*-----------------------------------------------------------------
+//LKED    EXEC  PGM=IEWL,COND=(4,LT),REGION=2M,PARM=''
+//*
+//* statt COND=(4,LT)
+//*
+//* IF RC <= 4 Then Do
+//* End
+//*
+//SYSUT1    DD  UNIT=SYSALLDA,SPACE=(CYL,(3,10))
+//SYSUT2    DD  UNIT=SYSALLDA,SPACE=(CYL,(3,10))
+//SYSUT3    DD  UNIT=SYSALLDA,SPACE=(CYL,(3,10))
+//SYSUT4    DD  UNIT=SYSALLDA,SPACE=(CYL,(3,10))
+//SYSUT5    DD  UNIT=SYSALLDA,SPACE=(CYL,(3,10))
+//SYSUT6    DD  UNIT=SYSALLDA,SPACE=(CYL,(3,10))
+//SYSUT7    DD  UNIT=SYSALLDA,SPACE=(CYL,(3,10))
+//SYSLIB    DD  DISP=SHR,DSN=ADCDC.SOURCE.COBOL
+//          DD  DISP=SHR,DSN=CEE.SCEELKED
+//SYSPRINT  DD  SYSOUT=*
+//SYSLMOD   DD  DISP=SHR,DSN=&LOADLIB.
+//SYSLIN    DD  DISP=SHR,DSN=&OBJELIB.(&ELEM.)
+//          DD  *
+ ENTRY HELLOCOB
+ ALIAS HELLOAAA
+ NAME HELLOCOB(R)
+/*
+//
+
+Ganz einfache Beispiele im zAPP Build sind DBDGen und PSBGen, dort ist
+zusätzlich ein JCL Beispiel als Kommentar mit eingetragen.
+
+Schaut Euch das bitte an und versucht zu verstehen, wie man das
+mit groovy abbilden kann.
+
+Findet alle Steps in GCB3A heraus, die aufgerufen werden
+Listet alle Programme von allen Steps auf
+	diese Steps müssen wir umsetzen
+-
+-
+-
+-
+Defaultwerte und Überschreibungen durch Properties
+
+Beispiel für Properties, die "von außen" kommen:
+C1EN = "MVSDEV"
+C1STAGE = "DEVELOP"
+DB2 = "FALSE"
+CSYSLIB1 = &C1EN..&C1STAGE..COBOL.COPY				MVSDEV.DEVELOP.COBOL.COPY
+CSYSLIB2 = &C1EN..&C1TSTAGE..COBOL.COPY				Error der geklärt werden muss
+LOADLIB = &C1EN..&C1STAGE..COBOL.LOAD				MVSDEV.DEVELOP.COBOL.LOAD
+COMPPRM = "MAP LIST"
+
+Beispiel für Defaultwerte in einem Prozessor:
+COMPPRM = "TEST NOTEST"								MAP.LIST
+OBJELIB = &C1EN..&C1STAGE..COBOL.OBJ				MVSDEV.DEVELOP.COBOL.OBJ
+LOADLIB = &C1EN..TEST.COBOL.LOAD					MVSDEV.DEVELOP.COBOL.LOAD
+CSYSLIB1 = &C1EN..TEST.COBOL.COPY					MVSDEV.DEVELOP.COBOL.COPY
+CSYSLIB2 = &C1TEN..&C1STAGE.COBOL.COPY				Error weil C1TEN nicht gesetzt
+CSYSLIB3 = &C1EN.SYSLIB3.COPY						MVSDEV.SYSLIB3.COPY
+DB2 = &CTAB(&C1STAGE,3)								DB2 = "FALSE"
+
+1) setzen Properties die von außen kommen
+2) setzen der Default Werte die im Prozesssor defniert sind
+3) setzen der Properties die von außen kommen ein zweites mal
+
+
+Frage: welche Properties gibt es und welche Inhalte haben die
+Properties zum Ablaufzeitpunkt des Prozessors?
+
+-
+-
+-
+-
+Aufgabe: Prüfen aller Steps die laut Kundenanforderung umgesetzt werden
+müssen und schauen, welche Dateien dort verwendet werden.
+
+Dann prüfen, ob diese Dateien in dem Prozessor vorher erstellt/generiert
+werden, dies muss dann nachgestellt werden.
+
+-
+-
+-
+-
+
+Programmaufrufe in GCB3A:
+//          ABNDPGM='CWPCMAIN'
+//          COMPILER=&ABNDPGM
+//          COB3PGM='IGYCRCTL'
+//PREALLOC EXEC PGM=BC1PDSIN
+//TRACE01  EXEC PGM=IEBGENER
+//ANOMALI0 EXEC PGM=IEBGENER
+//CONTINU0 EXEC PGM=IEFBR14
+//FORCECR0 EXEC PGM=BR15,PARM='0012'
+//CONTINU1 EXEC PGM=IEFBR14
+//ANOMALI1 EXEC PGM=IEBGENER
+//FORCECR1 EXEC PGM=BR15,PARM='0012'
+//CONTEXT  EXEC PGM=IEBGENER
+//CONWRITE  EXEC PGM=CONWRITE,PARM='EXPINCL(Y)'
+//GNOPTION EXEC PGM=IEBGENER
+//PRTOPT   EXEC PGM=IDCAMS
+//NOGNOPT  EXEC PGM=IEFBR14
+//SQL      EXEC PGM=DSNHPC,						umsetzen DB2 PreCompiler
+												hier wird die Source verändert
+												und ein DBRM erzeugt
+												DataBaseRequestModule
+												Das DBRM auf eine "künstliche" Datei schreiben
+												Wird dann beim //DBRMCOPY in das Nexus kopiert
+//NODB2N   EXEC PGM=IEFBR14
+//DB2INCB3 EXEC PGM=IEFBR14
+//NODB2Y   EXEC PGM=IEFBR14
+//TRN      EXEC PGM=DFHECP1$,					umsetzen CICS PreCompiler
+//NOCICSN  EXEC PGM=IEFBR14
+//CICINCB3 EXEC PGM=IEFBR14
+//NOCICSY  EXEC PGM=IEFBR14
+//COMPIL   EXEC PGM=&COMPILER,					umsetzen Compiler in diesem Beispiel
+												CWPCMAIN weil nicht von außen
+												überschrieben
+												Hier die Datei &&ELMNEW beachten
+												Wird vorher mit Inhalt belegt
+//ANOMALI2 EXEC PGM=IEBGENER
+//FORCECR2 EXEC PGM=BR15,PARM='0012'
+//IFMTX    EXEC PGM=IKJEFT01
+//MTXEXPAN EXEC PGM=EXPCOB,PARM='OFFD=-8',COND=(4,LT)
+//MTXQCCOB EXEC PGM=QCCOBOL,COND=(4,LT)
+//MTXCOBBP EXEC PGM=COBOLBP,COND=(4,LT),
+//NOANAMTX EXEC PGM=IEFBR14
+//NOMTX    EXEC PGM=IEFBR14
+//LKD1     EXEC PGM=IEWL,						umsetzen Binder / Linker / LinkageEditor
+												Ausgabe von IEWL ist der logische Name
+												SYSLMOD
+												abstatt DSN=&LOADLIB(&C1ELEMENT) einen "künstlichen" Namen
+												Nach dem //DBRMCOPY wird das Binary von der SYSLMOD in
+												das Nexus geschrieben (TAR Files)
+//LKD2     EXEC PGM=IEWL,						umsetzen Binder / Linker / LinkageEditor
+												Ausgabe von IEWL ist der logische Name
+												SYSLMOD
+												abstatt DSN=&LOADLIB(&C1ELEMENT) einen "künstlichen" Namen
+												Nach dem //DBRMCOPY wird das Binary von der SYSLMOD in
+												das Nexus geschrieben (TAR Files)
+//MDPRCGRP EXEC PGM=IKJEFT01,
+//DBRMCOPY EXEC PGM=CZX2PZQL,PARM='-IEBGENER-'	umsetzen mit einfachem IEBCOPY
+												nicht CZX2PZQL verwenden
+												
+												Beispiel:
+												//SYSIN DD *
+													COPY OUTDD=DDOUT3,INDD=DDIN3
+													S M=((MEMBERNAME,R))
+												/*
+												Richtig ist das DBRM in das Nexus
+												zu kopieren und nicht auf eine Datei
+//DPKGEN   EXEC PGM=C1BM3000,
+//SVCPL    EXEC PGM=IKJEFT01,
+//SAVELIST  EXEC PGM=CONLIST,PARM=STORE
+//NOSAVEL  EXEC PGM=IEFBR14
+//ERROR     EXEC PGM=CONLIST,PARM=PRINT,COND=EVEN
+//NOERROR  EXEC PGM=IEFBR14
+//PRTDEV    EXEC PGM=CONLIST,PARM=PRINT
+//NOPRTDEV EXEC PGM=IEFBR14
+//NOPRTDEV EXEC PGM=IEFBR14
+//PRTPRD    EXEC PGM=CONLIST,PARM=PRINT
+//NOPRTPRD EXEC PGM=IEFBR14
+//NOPRTPRD EXEC PGM=IEFBR14
+
+
+Wie ist das in Endevor:
+
+Programm ==> ProzessorGroup ==> maximal 3 Prozessoren
+								1 Prozessor für Build		wird von Euch gemacht :-) als erstes GCB3A
+								1 Prozessor für Move		wird in GITLab gemacht
+								1 Prozessor für Delete		wird in GITLab gemacht
+-
+-
+-
+Programm ==> ProzessorGroup
+	n	 ==> 	1
+	
+Mit Bharath das Thema Generali Properties aus GITLab klären hier nur ein kleines Beispiel
+
+Es gibt ein Doukument des Kunden welches die Struktur und die Properties
+beschreibt. Last Euch das mal von Bharath geben.
+
+Beispiel:
+Im GIT Branch steht folgendes drin:
+
+PROGRAM1.COBBTCH				Source die gebaut werden muss.
+								Die Extension COBBTCH ist gleichzeitig
+								das Property C1TY (ElementTyp)
+PROGRAM1.properties				hier steht der Name der ProzessorGroup drin
+
+								In dem Branch in einem anderen Ordner findet Ihr
+								eine Datei mit dem Namen der ProzessorGroup
+								und dort steht der Name des Prozessors drin und
+								die Properties, die von außen kommen
+
+PROGRAM2.COBBTCH
+PROGRAM2.properties
+PROGRAM3.COBBTCH
+PROGRAM3.properties
+
+
+Grober Ablauf ist:
+Lesen aus dem Branch die Datei <ElementName>.properties(y)
+Abgleichen der Properties aus dieser Datei mit den Defaultwerten aus GCB3A
+Dann erst Aufruf des GCB23A.groovy
 
 
 
