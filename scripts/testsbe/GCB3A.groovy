@@ -60,10 +60,9 @@ def createTrnCommand(buildFile, logicalFile, C1ELEMENT, logFile) {
 	def trn = new MVSExec().pgm("DFHECP1$").parm("{props.CITRNOPT}")
 	trn.dd(new DDStatement().name("TASKLIB").dsn("${props.CICSLOAD}").options("shr"))
 	trn.dd(new DDStatement().name("SYSPRINT").dsn("&&TRNLIST").options("cyl space(5,5) unit(vio) new").pass(true))	
-	
-	
-	
-	
+	trn.dd(new DDStatement().name("SYSIN").dsn("${props.sysinDsn}(${C1ELEMENT})").options("shr"))
+	trn.dd(new DDStatement().name("SYSPUNCH").dsn("&&SYSPUNCH").options("tracks space(15,5) unit(vio) new").pass(true))
+    return trn
 }
 
 def createCompileCommand(buildFile, logicalFile, C1ELEMENT, logFile) {
