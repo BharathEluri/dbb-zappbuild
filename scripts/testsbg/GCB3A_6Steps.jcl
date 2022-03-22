@@ -536,7 +536,6 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //* >     COPY OUTDD=DDOUT3,INDD=DDIN3
 //* >     S M=((MEMBERNAME,R))
 //* > /*
-//* > Richtig ist das DBRM in das Nexus zu kopieren und nicht auf eine Datei
 //*
 //* Vars: &@DB2 &@@BASEC &C1ELEMENT &DB2RMLB
 //*
