@@ -15,7 +15,18 @@ MVSExec dbrmcopy = createDbrmcopyCommand(buildFile, logicalFile, member, logFile
 MVSJob job = new MVSJob()
 job.start()
 if ("${props.COB3DYN}"== "N" && "${props.@DB2}" == "Y") {
-//	sql.execute()
+//	def sqlrc = sql.execute()
+	if (sqlrc > 4)
+		println("Pre Compile failed!  RC=$sqlrc")
+	else
+	{
+		println("Pre Compile successful!  RC=$sqlrc")
+		def copyrc= copySyscIn.execute()
+		if (copyrc > 4)
+			println("copy failed!  RC=$copyrc")
+		else
+			println("copy successful!  RC=$copyrc")
+	}
 }
 job.stop()
 
@@ -38,6 +49,13 @@ def createSqlCommand(buildFile, logicalFile, member, logFile) {
 
 def createTrnCommand(buildFile, logicalFile, member, logFile) {
 }
+def trn = new MVSExec().pgm("DFHECP1$").parm("{props.CITRNOPT}")
+trn.dd(new DDStatement().name("STEPLIB").dsn("${props.CICSLOAD}")
+trn.dd(new DDStatement().name("SYSPRINT").dsn("&&TRNLIST")("cyl space(5,5) unit(vio) new").pass(true))
+//if????? DB2=n (ELmount), DB2=y (SYSCIN) 
+trn.dd(new DDStatement().name("SYSIN").dsn("${props.sysinDsn}(${C1ELEMENT})").options("shr"))
+trn.dd(new DDStatement().name("Syspunch").dsn("&&SYSPUNCH")
+.options("tracks space(15,5) unit(vio) new recfm(F,B) blksize(80) lrecl(80)").pass(
 
 def createCompileCommand(buildFile, logicalFile, member, logFile) {
 }
