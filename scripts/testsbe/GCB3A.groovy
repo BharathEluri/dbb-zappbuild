@@ -40,14 +40,14 @@ buildFiles.each { buildFile ->
 	String C1ELEMENT = CopyToPDS.createMemberName(buildFile)
 	File logFile = new File( props.userBuild ? "${props.buildOutDir}/${C1ELEMENT}.log" : "${props.buildOutDir}/${C1ELEMENT}.cobol.log")
 	if (logFile.exists())
-		logFile.delete()
+	logFile.delete()
 
 	// create mvs commands
 	MVSExec sql = createSqlCommand(buildFile, logicalFile, C1ELEMENT, logFile)
 	MVSExec syscincopy = createSyscinCopyCommand(buildFile, logicalFile, C1ELEMENT, logFile)
 	MVSExec trn = createTrnCommand(buildFile, logicalFile, C1ELEMENT, logFile)
 	MVSExec syspunchcopy = createSyspunchCopyCommand(buildFile, logicalFile, C1ELEMENT, logFile)
-	MVSExec compile = createCompileCommand(buildFile, logicalFile, C1ELEMENT, logFile)
+	//	MVSExec compile = createCompileCommand(buildFile, logicalFile, C1ELEMENT, logFile)
 	//	MVSExec lked1 = createLked1Command(buildFile, logicalFile, member, logFile)
 	//	MVSExec lked2 = createLked2Command(buildFile, logicalFile, member, logFile)
 	//	MVSExec dbrmcopy = createDbrmcopyCommand(buildFile, logicalFile, member, logFile)
@@ -59,58 +59,50 @@ buildFiles.each { buildFile ->
 	//sql step
 	props.COB3DYN = "N"
 	props."@DB2" = "Y"
-	if("${props.COB3DYN}".toString().equals("N"))
+	if("${props.COB3DYN}".toString().equals("N") &&
+	"${props."@DB2"}".toString().equals("Y"))
 	{
-		if("${props."@DB2"}".toString().equals("Y"))
+		def sqlrc = sql.execute()
+		if (sqlrc > 4)
+		println("db2 Pre Compile failed!  RC=$sqlrc")
+		else
 		{
-			def sqlrc = sql.execute()
-			if (sqlrc > 4)
-				println("db2 Pre Compile failed!  RC=$sqlrc")
+			println("db2 Pre Compile successful!  RC=$sqlrc")
+			String successMsg = "*The db2 Pre compile return code ($sqlrc) for $buildFile"
+			buildUtils.updateBuildResult(successMsg:successMsg,logs:["${C1ELEMENT}.log":logFile],client:getRepositoryClient())
+			def copyrc= syscincopy.execute()
+			if (copyrc > 4)
+			println("copy failed!  RC=$copyrc")
 			else
-			{
-				println("db2 Pre Compile successful!  RC=$sqlrc")
-				String successMsg = "*The db2 Pre compile return code ($sqlrc) for $buildFile"
-				buildUtils.updateBuildResult(successMsg:successMsg,logs:["${C1ELEMENT}.log":logFile],client:getRepositoryClient())
-				def copyrc= syscincopy.execute()
-				if (copyrc > 4)
-					println("copy failed!  RC=$copyrc")
-				else
-					println("copy successful!  RC=$copyrc")
-			}
+			println("copy successful!  RC=$copyrc")
 		}
 	}
 	//	trn step
 	props.COB3DYN = "N"
 	props."@CIC" = "Y"
 	props."@XDL" = "Y"
-	if("${props.COB3DYN}".toString().equals("N"))
+	if("${props.COB3DYN}".toString().equals("N") &&
+	("${props."@CIC"}".toString().equals("Y") || "${props."@XDL"}".toString().equals("Y")))
 	{
-		if("${props."@CIC"}".toString().equals("Y"))
+		def trnrc = trn.execute()
+		if (trnrc > 4)
+		println("trn failed!  RC=$trnrc")
+		else
 		{
-			if("${props."@XDL"}".toString().equals("Y"))
-			{
-				def trnrc = trn.execute()
-				if (trnrc > 4)
-					println("trn failed!  RC=$trnrc")
-				else
-				{
-					println("trn successful!  RC=$trnrc")
-					def trncopyrc = syspunchcopy.execute()
-					if (trncopyrc > 4)
-						println("copy failed!  RC=$trncopyrc")
-					else
-						println("copy successful!  RC=$trncopyrc")
-				}
-			}
+			println("trn successful!  RC=$trnrc")
+			def trncopyrc = syspunchcopy.execute()
+			if (trncopyrc > 4)
+			println("copy failed!  RC=$trncopyrc")
+			else
+			println("copy successful!  RC=$trncopyrc")
 		}
 	}
-
-
+	
 	job.stop()
 
 }
 
-// create method definitions 
+// create method definitions
 
 def createSqlCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT, File logFile) {
 	def sql = new MVSExec().pgm("DSNHPC").parm("${props.DB2OPT}")
@@ -152,122 +144,121 @@ def createSyspunchCopyCommand(String buildFile, LogicalFile logicalFile, String 
 	return syspunchcopy
 }
 
-def createCompileCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT, File logFile) {
-	props.COB3DYN = "N"
-	props."@CIC" = "Y"
-	props."@XDL" = "Y"
-	props."@DB2" = "Y"
-	def compil = new MVSExec().pgm("${props.COMPILER}").parm("${props.COBOPT1},${props.COBOPT2},${props.COBODEV}")
-
-	if("${props.COB3DYN}".toString().equals("N") &&
-	("${props."@CIC"}".toString().equals("Y") || "${props."@XDL"}".toString().equals("Y")) &&
-	("${props."@DB2"}".toString().equals("Y") || "${props."&@DB2"}".toString().equals("N")))
-	compil.dd(new DDStatement().name("SYSIN").dsn("&&SYSPUNCH").options("shr"))
-
-	if("${props.COB3DYN}".toString().equals("N") &&
-	("${props."@CIC"}".toString().equals("N") || "${props."@XDL"}".toString().equals("N")) &&
-	"${props."@DB2"}".toString().equals("Y"))
-	compil.dd(new DDStatement().name("SYSIN").dsn("&&SYSCIN").options("shr")
-
-	if("${props.COB3DYN}".toString().equals("N") &&
-	("${props."@CIC"}".toString().equals("N") || "${props."@XDL"}".toString().equals("N")) &&
-	"${props."@DB2"}".toString().equals("N"))
-	compil.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}(${C1ELEMENT})").options("shr"))
-
-	if("${props.COB3DYN}".toString().equals("Y") &&
-	("${props."@CIC"}".toString().equals("Y") || "${props."@XDL"}".toString().equals("Y")) &&
-	"${props."@DB2"}".toString().equals("Y"))
-	compil.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}(${C1ELEMENT})").options("shr"))
-
-	if("${props.COB3DYN}".toString().equals("Y") &&
-	("${props."@CIC"}".toString().equals("N") || "${props."@XDL"}".toString().equals("N")) &&
-	"${props."@DB2"}".toString().equals("N"))
-	compil.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}(${C1ELEMENT})").options("shr"))
-
-	if("${props.COB3DYN}".toString().equals("Y") &&
-	"${props."@DB2"}".toString().equals("N"))
-	compil.dd(new DDStatement().name("DBRMLIB").dsn("${props.cobol_dbrmPDS}(${C1ELEMENT})").options("shr"))
-
-
-	compil.dd(new DDStatement().name("SYSLIB").dsn("SYS1.VIDE.BSCOS39S").options("shr"))
-	compil.dd(new DDStatement().dsn("${props.COCPUSR1}").options("shr"))
-	compil.dd(new DDStatement().dsn("${props.COCPUSR2}").options("shr"))
-	compil.dd(new DDStatement().dsn("${props.COCPUSR3}").options("shr"))
-	compil.dd(new DDStatement().dsn("${props.COBSHDM}").options("shr"))
-	compil.dd(new DDStatement().dsn("${props.COBODMM}").options("shr"))
-	if("${props."@CIC"}".toString().equals("Y"))
-	{
-		compil.dd(new DDStatement().dsn("${props.COBCICM}").options("shr"))
-		compil.dd(new DDStatement().dsn("${props.COBASFM}").options("shr"))
-	}
-	if("${props."@BTC"}".toString().equals("Y"))
-	{
-		compil.dd(new DDStatement().dsn("${props.COBPRNTM}").options("shr"))
-	}
-	if("${props."@DB2"}".toString().equals("Y"))
-	{
-		compil.dd(new DDStatement().dsn("${props.DB2DCLG}").options("shr"))
-	}
-	compil.dd(new DDStatement().dsn("${props.COCPSTG1}").options("shr"))
-	compil.dd(new DDStatement().dsn("${props.COCPSTG2}").options("shr"))
-	compil.dd(new DDStatement().dsn("${props.COSTGRCP}").options("shr"))
-	compil.dd(new DDStatement().dsn("${props.COSTGPCP}").options("shr"))
-
-	compil.dd(new DDStatement().name("SYSLIN").dsn("&&SYSLIN").options("cyl space(1,1) unit(vio) blksize(3200) new").pass(true))
-	compil.dd(new DDStatement().name("SYSPRINT").dsn("&&COB0LST").options("cyl space(3,5) unit(vio) new").pass(true))
-	compil.dd(new DDStatement().name("TASKLIB").dsn("${props.COBLIB}").options("shr"))
-	compil.dd(new DDStatement().dsn("${props.ABNLIB}").options("shr"))
-	compil.dd(new DDStatement().dsn("${props.CICSLOAD}").options("shr"))
-	if("${props."@DB2"}".toString().equals("Y"))
-	{
-		compil.dd(new DDStatement().dsn("${props.DB2EXIT}").options("shr"))
-		compil.dd(new DDStatement().dsn("${props.DB2LOAD}").options("shr"))
-	}
-	compil.dd(new DDStatement().name("SYSUT1").options("cyl space(1,1) unit(vio) new"))
-	compil.dd(new DDStatement().name("SYSUT2").options("cyl space(1,1) unit(vio) new"))
-	compil.dd(new DDStatement().name("SYSUT3").options("cyl space(1,1) unit(vio) new"))
-	compil.dd(new DDStatement().name("SYSUT4").options("cyl space(1,1) unit(vio) new"))
-	compil.dd(new DDStatement().name("SYSUT5").options("cyl space(1,1) unit(vio) new"))
-	compil.dd(new DDStatement().name("SYSUT6").options("cyl space(1,1) unit(vio) new"))
-	compil.dd(new DDStatement().name("SYSUT7").options("cyl space(1,1) unit(vio) new"))
-
-	if("${props.COMPILER}".toString().equals("CWPCMAIN"))
-	{
-		compil.dd(new DDStatement().name("CWPDDIO").dsn("${props.ABNDDIOF}").options("shr"))
-		compil.dd(new DDStatement().name("CWPERRM").dsn("&&CWPERRM").options("cyl space(1,2) unit(work) new").pass(true))
-	}
-	//CWPWBNV  DD SYSOUT=Z
-	//SYSOUT   DD SYSOUT=Z
-	if("${props."@CIC"}".toString().equals("Y"))
-	{
-		compil.dd(new DDStatement().name("CWPPRMO").instreamData('''
-LANGUAGE(COBOLZ/OS)
-COBOL(OUTPUT(NOPRINT,NODDIO))
-PROCESSOR(OUTPUT(PRINT,DDIO))
-PROCESSOR(TEXT(NONE))
-PROCESSOR(NOBYPASS)
-PROCESSOR(ERRORS(MIXED-CASE))
-DDIO(OUTPUT(FIND,COMPRESS,NOLIST))
-PRINT(OUTPUT(SOURCE,NOLIST))
-CICSTEST(OPTIONS(WARNING))''')
-	}
-
-	if("${props."@BTC"}".toString().equals("Y"))
-	{
-		compil.dd(new DDStatement().name("CWPPRMO").instreamData('''
-LANGUAGE(COBOLZ/OS)
-COBOL(OUTPUT(NOPRINT,NODDIO))
-PROCESSOR(OUTPUT(PRINT,DDIO))
-PROCESSOR(TEXT(NONE))
-PROCESSOR(NOBYPASS)
-PROCESSOR(ERRORS(MIXED-CASE))
-DDIO(OUTPUT(FIND,COMPRESS,NOLIST))
-PRINT(OUTPUT(SOURCE,NOLIST))''')
-	}
-
-
-
-}
+//def createCompileCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT, File logFile) {
+//	props.COB3DYN = "N"
+//	props."@CIC" = "Y"
+//	props."@XDL" = "Y"
+//	props."@DB2" = "Y"
+//	def compil = new MVSExec().pgm("${props.COMPILER}").parm("${props.COBOPT1},${props.COBOPT2},${props.COBODEV}")
+//
+//	if("${props.COB3DYN}".toString().equals("N") &&
+//	("${props."@CIC"}".toString().equals("Y") || "${props."@XDL"}".toString().equals("Y")) &&
+//	("${props."@DB2"}".toString().equals("Y") || "${props."&@DB2"}".toString().equals("N")))
+//	compil.dd(new DDStatement().name("SYSIN").dsn("&&SYSPUNCH").options("shr"))
+//
+//	if("${props.COB3DYN}".toString().equals("N") &&
+//	("${props."@CIC"}".toString().equals("N") || "${props."@XDL"}".toString().equals("N")) &&
+//	"${props."@DB2"}".toString().equals("Y"))
+//	compil.dd(new DDStatement().name("SYSIN").dsn("&&SYSCIN").options("shr")
+//
+//	if("${props.COB3DYN}".toString().equals("N") &&
+//	("${props."@CIC"}".toString().equals("N") || "${props."@XDL"}".toString().equals("N")) &&
+//	"${props."@DB2"}".toString().equals("N"))
+//	compil.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}(${C1ELEMENT})").options("shr"))
+//
+//	if("${props.COB3DYN}".toString().equals("Y") &&
+//	("${props."@CIC"}".toString().equals("Y") || "${props."@XDL"}".toString().equals("Y")) &&
+//	"${props."@DB2"}".toString().equals("Y"))
+//	compil.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}(${C1ELEMENT})").options("shr"))
+//
+//	if("${props.COB3DYN}".toString().equals("Y") &&
+//	("${props."@CIC"}".toString().equals("N") || "${props."@XDL"}".toString().equals("N")) &&
+//	"${props."@DB2"}".toString().equals("N"))
+//	compil.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}(${C1ELEMENT})").options("shr"))
+//
+//	if("${props.COB3DYN}".toString().equals("Y") &&
+//	"${props."@DB2"}".toString().equals("N"))
+//	compil.dd(new DDStatement().name("DBRMLIB").dsn("${props.cobol_dbrmPDS}(${C1ELEMENT})").options("shr"))
+//
+//
+//	compil.dd(new DDStatement().name("SYSLIB").dsn("SYS1.VIDE.BSCOS39S").options("shr"))
+//	compil.dd(new DDStatement().dsn("${props.COCPUSR1}").options("shr"))
+//	compil.dd(new DDStatement().dsn("${props.COCPUSR2}").options("shr"))
+//	compil.dd(new DDStatement().dsn("${props.COCPUSR3}").options("shr"))
+//	compil.dd(new DDStatement().dsn("${props.COBSHDM}").options("shr"))
+//	compil.dd(new DDStatement().dsn("${props.COBODMM}").options("shr"))
+//	if("${props."@CIC"}".toString().equals("Y"))
+//	{
+//		compil.dd(new DDStatement().dsn("${props.COBCICM}").options("shr"))
+//		compil.dd(new DDStatement().dsn("${props.COBASFM}").options("shr"))
+//	}
+//	if("${props."@BTC"}".toString().equals("Y"))
+//	{
+//		compil.dd(new DDStatement().dsn("${props.COBPRNTM}").options("shr"))
+//	}
+//	if("${props."@DB2"}".toString().equals("Y"))
+//	{
+//		compil.dd(new DDStatement().dsn("${props.DB2DCLG}").options("shr"))
+//	}
+//	compil.dd(new DDStatement().dsn("${props.COCPSTG1}").options("shr"))
+//	compil.dd(new DDStatement().dsn("${props.COCPSTG2}").options("shr"))
+//	compil.dd(new DDStatement().dsn("${props.COSTGRCP}").options("shr"))
+//	compil.dd(new DDStatement().dsn("${props.COSTGPCP}").options("shr"))
+//
+//	compil.dd(new DDStatement().name("SYSLIN").dsn("&&SYSLIN").options("cyl space(1,1) unit(vio) blksize(3200) new").pass(true))
+//	compil.dd(new DDStatement().name("SYSPRINT").dsn("&&COB0LST").options("cyl space(3,5) unit(vio) new").pass(true))
+//	compil.dd(new DDStatement().name("TASKLIB").dsn("${props.COBLIB}").options("shr"))
+//	compil.dd(new DDStatement().dsn("${props.ABNLIB}").options("shr"))
+//	compil.dd(new DDStatement().dsn("${props.CICSLOAD}").options("shr"))
+//	if("${props."@DB2"}".toString().equals("Y"))
+//	{
+//		compil.dd(new DDStatement().dsn("${props.DB2EXIT}").options("shr"))
+//		compil.dd(new DDStatement().dsn("${props.DB2LOAD}").options("shr"))
+//	}
+//	compil.dd(new DDStatement().name("SYSUT1").options("cyl space(1,1) unit(vio) new"))
+//	compil.dd(new DDStatement().name("SYSUT2").options("cyl space(1,1) unit(vio) new"))
+//	compil.dd(new DDStatement().name("SYSUT3").options("cyl space(1,1) unit(vio) new"))
+//	compil.dd(new DDStatement().name("SYSUT4").options("cyl space(1,1) unit(vio) new"))
+//	compil.dd(new DDStatement().name("SYSUT5").options("cyl space(1,1) unit(vio) new"))
+//	compil.dd(new DDStatement().name("SYSUT6").options("cyl space(1,1) unit(vio) new"))
+//	compil.dd(new DDStatement().name("SYSUT7").options("cyl space(1,1) unit(vio) new"))
+//
+//	if("${props.COMPILER}".toString().equals("CWPCMAIN"))
+//	{
+//		compil.dd(new DDStatement().name("CWPDDIO").dsn("${props.ABNDDIOF}").options("shr"))
+//		compil.dd(new DDStatement().name("CWPERRM").dsn("&&CWPERRM").options("cyl space(1,2) unit(work) new").pass(true))
+//	}
+//	//CWPWBNV  DD SYSOUT=Z
+//	//SYSOUT   DD SYSOUT=Z
+//	if("${props."@CIC"}".toString().equals("Y"))
+//	{
+//		compil.dd(new DDStatement().name("CWPPRMO").instreamData('''
+//LANGUAGE(COBOLZ/OS)
+//COBOL(OUTPUT(NOPRINT,NODDIO))
+//PROCESSOR(OUTPUT(PRINT,DDIO))
+//PROCESSOR(TEXT(NONE))
+//PROCESSOR(NOBYPASS)
+//PROCESSOR(ERRORS(MIXED-CASE))
+//DDIO(OUTPUT(FIND,COMPRESS,NOLIST))
+//PRINT(OUTPUT(SOURCE,NOLIST))
+//CICSTEST(OPTIONS(WARNING))''')
+//	}
+//
+//	if("${props."@BTC"}".toString().equals("Y"))
+//	{
+//		compil.dd(new DDStatement().name("CWPPRMO").instreamData('''
+//LANGUAGE(COBOLZ/OS)
+//COBOL(OUTPUT(NOPRINT,NODDIO))
+//PROCESSOR(OUTPUT(PRINT,DDIO))
+//PROCESSOR(TEXT(NONE))
+//PROCESSOR(NOBYPASS)
+//PROCESSOR(ERRORS(MIXED-CASE))
+//DDIO(OUTPUT(FIND,COMPRESS,NOLIST))
+//PRINT(OUTPUT(SOURCE,NOLIST))''')
+//	}
+//
+//return compil
+//}
 
 def getRepositoryClient() {
 	if (!repositoryClient && props."dbb.RepositoryClient.url")
