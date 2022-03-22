@@ -61,6 +61,7 @@ def createTrnCommand(buildFile, logicalFile, C1ELEMENT, logFile) {
 	def trn = new MVSExec().pgm("DFHECP1\$").parm("${props.CITRNOPT}")
 	trn.dd(new DDStatement().name("TASKLIB").dsn("${props.CICSLOAD}").options("shr"))
 	//	trn.dd(new DDStatement().name("SYSPRINT").dsn("&&TRNLIST").options("cyl space(1,2) unit(vio) new").pass(true))
+	//	BGZTK0016E An error occurred running BPXWDYN command 'alloc dd(SYSPRINT) dsn(&#38;&#38;TRNLIST) cyl space(1,2) unit(vio) new'.
 	trn.dd(new DDStatement().name("SYSIN").dsn("${props.sysinDsn}(${C1ELEMENT})").options("shr"))
 	trn.dd(new DDStatement().name("SYSPUNCH").dsn("&&SYSPUNCH").options("tracks space(15,5) unit(vio) new").pass(true))
 	return trn
