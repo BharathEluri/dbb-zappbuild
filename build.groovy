@@ -21,6 +21,8 @@ import groovy.xml.*
 @Field String gitchangedfilesPrefix = ':gitchangedfiles:'
 @Field RepositoryClient repositoryClient
 
+
+
 // start time message
 def startTime = new Date()
 props.startTime = startTime.format("yyyyMMdd.hhmmss.mmm")
@@ -110,6 +112,7 @@ def initializeBuildProcess(String[] args) {
 		println("** Reset option selected")
 		if (props."dbb.RepositoryClient.url") {
 			repositoryClient = new RepositoryClient().forceSSLTrusted(true)
+			RepositoryClient().any
 
 			println("* Deleting collection ${props.applicationCollectionName}")
 			repositoryClient.deleteCollection(props.applicationCollectionName)
