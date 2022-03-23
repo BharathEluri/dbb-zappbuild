@@ -12,8 +12,8 @@ JCL to Groovy
 4. TASKLIB
    STEPLIB
 
-5. DSN=&&SQLLIST
-   dsn("&&SQLLIST")
+5. DSN=&&SYSCIN
+   dsn("&&SYSCIN")
 
 6. //* Kommentar
    // Kommentar
@@ -21,9 +21,9 @@ JCL to Groovy
 7. //IF_TST1  IF &COB3DYN = N    THEN
    //IF_TST2  IF &@DB2 = Y THEN
 
-   if ("${props.COB3DYN}"== "N" && "${props.@DB2}" == "Y") {
-
-   }
+   if("${props.COB3DYN}".toString().equals("N") &&
+	"${props."@DB2"}".toString().equals("Y"))
+	{
 
 8. //SYSUT1   DD UNIT=VIO,SPACE=(TRK,(15,15)),DCB=BUFNO=1
    sql.dd(new DDStatement().name("SYSUT1").options("tracks space(15,15) unit(vio) new"))
@@ -50,7 +50,8 @@ JCL to Groovy
 13. In props Dateien      DB2@VERS='VERSION(&C1FOOTPRT(48,16))'
      DB2@VERS = VERSION(AUTO) zu verwenden
 
-14. Muss diese Logik verwendet werden oder (nein) (einzelwerte für BTC müssten gelifert werden)
+14. Musss diese Logik verwendet werden
+    kann verwendet werden
 	//     IDXTAB=&C1PRGRP(3,2)
 	//     TABLK2=NNNNYNNNNNNNNNNNNNNNNNNN
 	//     BTC=&@@TABBTC(&@#IDXTAB,1)
