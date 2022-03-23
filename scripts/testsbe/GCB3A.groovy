@@ -38,9 +38,13 @@ buildFiles.each { buildFile ->
 	//create logical file and log file
 	LogicalFile logicalFile = dependencyResolver.getLogicalFile()
 	String C1ELEMENT = CopyToPDS.createMemberName(buildFile)
-	File logFile = new File( props.userBuild ? "${props.buildOutDir}/${C1ELEMENT}.log" : "${props.buildOutDir}/${C1ELEMENT}.cobol.log")
+	String logName = "${props.ENV}.${props.STG}.${props.SYS}.${props.SUB}.${C1ELEMENT}.${props.TYP}"
+	logFile = new File( props.userBuild ? "${props.buildOutDir}/${logName}.userBuild.LISTING" : "${props.buildOutDir}/${logName}.LISTING")
 	if (logFile.exists())
-	logFile.delete()
+		logFile.delete()
+	//	File logFile = new File( props.userBuild ? "${props.buildOutDir}/${C1ELEMENT}.log" : "${props.buildOutDir}/${C1ELEMENT}.cobol.log")
+	//	if (logFile.exists())
+	//	logFile.delete()
 
 	// create mvs commands
 	MVSExec sql = createSqlCommand(buildFile, logicalFile, C1ELEMENT, logFile)
@@ -64,17 +68,17 @@ buildFiles.each { buildFile ->
 	{
 		def sqlrc = sql.execute()
 		if (sqlrc > 4)
-		println("db2 Pre Compile failed!  RC=$sqlrc")
+			println("db2 Pre Compile failed!  RC=$sqlrc")
 		else
 		{
 			println("db2 Pre Compile successful!  RC=$sqlrc")
 			String successMsg = "*The db2 Pre compile return code ($sqlrc) for $buildFile"
-			buildUtils.updateBuildResult(successMsg:successMsg,logs:["${C1ELEMENT}.log":logFile],client:getRepositoryClient())
+			buildUtils.updateBuildResult(successMsg:successMsg,logs:["${logName}.log":logFile],client:getRepositoryClient())
 			def copyrc= syscincopy.execute()
 			if (copyrc > 4)
-			println("copy failed!  RC=$copyrc")
+				println("copy failed!  RC=$copyrc")
 			else
-			println("copy successful!  RC=$copyrc")
+				println("copy successful!  RC=$copyrc")
 		}
 	}
 	//	trn step
@@ -86,18 +90,18 @@ buildFiles.each { buildFile ->
 	{
 		def trnrc = trn.execute()
 		if (trnrc > 4)
-		println("trn failed!  RC=$trnrc")
+			println("trn failed!  RC=$trnrc")
 		else
 		{
 			println("trn successful!  RC=$trnrc")
 			def trncopyrc = syspunchcopy.execute()
 			if (trncopyrc > 4)
-			println("copy failed!  RC=$trncopyrc")
+				println("copy failed!  RC=$trncopyrc")
 			else
-			println("copy successful!  RC=$trncopyrc")
+				println("copy successful!  RC=$trncopyrc")
 		}
 	}
-	
+
 	job.stop()
 
 }
@@ -108,7 +112,7 @@ def createSqlCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT
 	def sql = new MVSExec().pgm("DSNHPC").parm("${props.DB2OPT}")
 	sql.dd(new DDStatement().name("TASKLIB").dsn("${props.DB2EXIT}").options("shr"))
 	sql.dd(new DDStatement().dsn("${props.DB2LOAD}").options("shr"))
-	sql.dd(new DDStatement().name("SYSPRINT").dsn("&&SQLLIST").options("cyl space(1,2) unit(vio) new").pass(true))
+	sql.dd(new DDStatement().name("SYSPRINT").options("cyl space(1,2) unit(vio) new"))
 	sql.dd(new DDStatement().name("SYSTERM").options("DUMMY"))
 	sql.dd(new DDStatement().name("SYSUT1").options("tracks space(15,15) unit(vio) new"))
 	sql.dd(new DDStatement().name("SYSUT2").options("tracks space(5,5) unit(vio) new"))
@@ -122,14 +126,18 @@ def createSqlCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT
 
 def createSyscinCopyCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT, File logFile) {
 	def syscincopy = new MVSExec().pgm("IEBGENER")
+	syscincopy.dd(new DDStatement().name("SYSIN").options("DUMMY"))
 	syscincopy.dd(new DDStatement().name("SYSUT1").dsn("&&SYSCIN").options("shr"))
 	syscincopy.dd(new DDStatement().name("SYSUT2").dsn("${props.cobol_srcPDS}(${C1ELEMENT}").options("shr"))
+	syscincopy.dd(new DDStatement().name("SYSPRINT").options("cyl space(1,2) unit(vio) new"))
+	
 	return syscincopy
 }
 
 def createTrnCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT, File logFile) {
 	def trn = new MVSExec().pgm("DFHECP1\$").parm("${props.CITRNOPT}")
 	trn.dd(new DDStatement().name("TASKLIB").dsn("${props.CICSLOAD}").options("shr"))
+	trn.dd(new DDStatement().name("SYSPRINT").options("cyl space(1,2) unit(vio) new"))
 	//	trn.dd(new DDStatement().name("SYSPRINT").dsn("&&TRNLIST").options("cyl space(1,2) unit(vio) new").pass(true))
 	//  BGZTK0016E An error occurred running BPXWDYN command 'alloc dd(SYSPRINT) dsn(&#38;&#38;TRNLIST) cyl space(1,2) unit(vio) new'.
 	trn.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}(${C1ELEMENT})").options("shr"))
@@ -139,8 +147,11 @@ def createTrnCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT
 
 def createSyspunchCopyCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT, File logFile) {
 	def syspunchcopy = new MVSExec().pgm("IEBGENER")
+	syspunchcopy.dd(new DDStatement().name("SYSIN").options("DUMMY"))
 	syspunchcopy.dd(new DDStatement().name("SYSUT1").dsn("&&SYSPUNCH").options("shr"))
 	syspunchcopy.dd(new DDStatement().name("SYSUT2").dsn("${props.cobol_srcPDS}(${C1ELEMENT}").options("shr"))
+	syspunchcopy.dd(new DDStatement().name("SYSPRINT").options("cyl space(1,2) unit(vio) new"))
+	
 	return syspunchcopy
 }
 
@@ -262,7 +273,7 @@ def createSyspunchCopyCommand(String buildFile, LogicalFile logicalFile, String 
 
 def getRepositoryClient() {
 	if (!repositoryClient && props."dbb.RepositoryClient.url")
-	repositoryClient = new RepositoryClient().forceSSLTrusted(true)
+		repositoryClient = new RepositoryClient().forceSSLTrusted(true)
 
 	return repositoryClient
 }
