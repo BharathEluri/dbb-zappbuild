@@ -143,6 +143,27 @@ def createSyspunchCopyCommand(String buildFile, LogicalFile logicalFile, String 
 	syspunchcopy.dd(new DDStatement().name("SYSUT2").dsn("${props.cobol_srcPDS}(${C1ELEMENT}").options("shr"))
 	return syspunchcopy
 }
+def createCompileCommand(buildFile, logicalFile, member, logFile) {
+	def compile = new MVSExec().pgm("${props.COMPILER}").parm("${props.COBOPT1} ${props.COBOPT2} ${props.COBODEV}")
+	if ("${props.COB3DYN}" == "N" && "${props.@CIC}" == "Y" || "${@XDL}" == "Y" && "${@DB2}" == "Y" || "${@DB2}" == "N"){
+		compile.dd(new DDStatement().name("SYSIN").dsn("&&SYSPUNCH").pass(true))
+	}
+	if ("${props.COB3DYN}" == "N" && "${props.@CIC}" == "N" && "${@XDL}" == "N" && "${@DB2}" == "Y"){
+		compile.dd(new DDStatement().name("SYSIN").dsn("&&SYSCIN").pass(true))
+	}
+	if ("${props.COB3DYN}" == "N" && "${props.@CIC}" == "N" && "${@XDL}" == "N" && "${@DB2}" == "N"){
+		compile.dd(new DDStatement().name("SYSIN").dsn("${props.sysinDsn}(${C1ELEMENT})").options("shr").pass(true))
+	}
+	if ("${props.COB3DYN}" == "Y" && "${props.@CIC}" == "Y" || "${@XDL}" == "Y" || "${@DB2}" == "Y")
+		compile.dd(new DDStatement().name("SYSIN").dsn("&&ELMNEW").pass(true))
+	}
+	if ("${props.COB3DYN}" == "Y" && "${props.@CIC}" == "N" && "${@XDL}" == "N" && "${@DB2}" == "N"){
+		compile.dd(new DDStatement().name("SYSIN").dsn("${props.sysinDsn}(${C1ELEMENT})").options("shr").pass(true))
+	}
+	if ("${props.COB3DYN}" == "Y" && "${props.@DB2}" == "Y"){
+		compile.dd(new DDStatement().name("DBRMLIB").dsn("${props.dbrmDsn}(${props.C1ELEMENT})").options("shr").pass(true))
+	}
+	
 
 //def createCompileCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT, File logFile) {
 //	props.COB3DYN = "N"
