@@ -15,6 +15,9 @@ import com.ibm.dbb.build.report.records.*
 @Field def bindUtils= loadScript(new File("${props.DBBBuildDir}/utilities/BindUtilities.groovy"))
 @Field RepositoryClient repositoryClient
 
+// verify required build properties
+buildUtils.assertBuildProperties(props.cobol_requiredBuildProperties)
+
 println("** Building files mapped to ${this.class.getName()}.groovy script")
 
 // create language datasets
