@@ -59,14 +59,24 @@ JCL to Groovy
 15.  mit welchem programm kann eine sequentielle datei nach feste datei kopiert werden
      mit iebgener
 
-16. Wenn ein Dataset schon in utilities/buildutilities.groovy allocated ist, wird .options(shr) verwendet. 
+16. Wenn ein Dataset schon in utilities/buildutilities.groovy allocated ist, wird .options(shr) verwendet.
 	//DBRMLIB  DD DSN=&&DBRM(&C1ELEMENT),DISP=(,PASS),
 	//            UNIT=WORK,SPACE=(CYL,(1,1,1)),
 	//            DCB=(RECFM=FB,BLKSIZE=80)
 	sql.dd(new DDStatement().name("DBRMLIB").dsn("${props.cobol_dbrmPDS}(${C1ELEMENT})").options("shr"))
 
-	Besteht noch keine allocation wird .options([...]new) verwendet. Die Datasets sind in 
+	Besteht noch keine allocation wird .options([...]new) verwendet. Die Datasets sind in
 	utilities/buildutilities.groovy genauer aufgefuehrt. (stc)
+
+17. SYSPRINT DD DSN Name zu skippen wenn der DSN Name in anderen Steps im JCL nicht verwendet wurde
+   //SYSPRINT DD DSN=&&SQLLIST,DISP=(OLD,PASS)
+   //SYSPRINT DD DSN=&&TRNLIST,DISP=(OLD,PASS)
+
+   sql.dd(new DDStatement().name("SYSPRINT").options("cyl space(1,2) unit(vio) new"))
+   trn.dd(new DDStatement().name("SYSPRINT").options("cyl space(1,2) unit(vio) new"))
+
+
+
 
 
 ------------------------------------------------------------------------------------------------------------
