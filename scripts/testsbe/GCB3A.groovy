@@ -127,7 +127,6 @@ def createSyscinCopyCommand(String buildFile, LogicalFile logicalFile, String C1
 	syscincopy.dd(new DDStatement().name("SYSUT1").dsn("&&SYSCIN").options("shr"))
 	syscincopy.dd(new DDStatement().name("SYSUT2").dsn("${props.cobol_srcPDS}(${C1ELEMENT}").options("shr"))
 	syscincopy.dd(new DDStatement().name("SYSPRINT").options("cyl space(1,2) unit(vio) new"))
-	
 	return syscincopy
 }
 
@@ -146,7 +145,6 @@ def createSyspunchCopyCommand(String buildFile, LogicalFile logicalFile, String 
 	syspunchcopy.dd(new DDStatement().name("SYSUT1").dsn("&&SYSPUNCH").options("shr"))
 	syspunchcopy.dd(new DDStatement().name("SYSUT2").dsn("${props.cobol_srcPDS}(${C1ELEMENT}").options("shr"))
 	syspunchcopy.dd(new DDStatement().name("SYSPRINT").options("cyl space(1,2) unit(vio) new"))
-	
 	return syspunchcopy
 }
 
@@ -212,7 +210,7 @@ def createSyspunchCopyCommand(String buildFile, LogicalFile logicalFile, String 
 //	compil.dd(new DDStatement().dsn("${props.COSTGPCP}").options("shr"))
 //
 //	compil.dd(new DDStatement().name("SYSLIN").dsn("&&SYSLIN").options("cyl space(1,1) unit(vio) blksize(3200) new").pass(true))
-//	compil.dd(new DDStatement().name("SYSPRINT").dsn("&&COB0LST").options("cyl space(3,5) unit(vio) new").pass(true))
+//	compil.dd(new DDStatement().name("SYSPRINT").options("cyl space(3,5) unit(vio) new"))
 //	compil.dd(new DDStatement().name("TASKLIB").dsn("${props.COBLIB}").options("shr"))
 //	compil.dd(new DDStatement().dsn("${props.ABNLIB}").options("shr"))
 //	compil.dd(new DDStatement().dsn("${props.CICSLOAD}").options("shr"))
@@ -232,7 +230,7 @@ def createSyspunchCopyCommand(String buildFile, LogicalFile logicalFile, String 
 //	if("${props.COMPILER}".toString().equals("CWPCMAIN"))
 //	{
 //		compil.dd(new DDStatement().name("CWPDDIO").dsn("${props.ABNDDIOF}").options("shr"))
-//		compil.dd(new DDStatement().name("CWPERRM").dsn("&&CWPERRM").options("cyl space(1,2) unit(work) new").pass(true))
+//		compil.dd(new DDStatement().name("CWPERRM").options("cyl space(1,2) unit(work) new"))
 //	}
 //	//CWPWBNV  DD SYSOUT=Z
 //	//SYSOUT   DD SYSOUT=Z
@@ -292,10 +290,26 @@ def populateBuildProperties(String buildFile) {
 	props.load(new File(overridingProps))
 	props.load(new File(defaultProps))
 	props.load(new File(overridingProps))
-	props."@#IDXTAB"="${props.processor_group}".toString().substring(3,4)
-	props."@BTC"="${props."@@TABBTC"}".toString().substring("${props."@#IDXTAB"}".toInteger(),2)
-	props."@CIC"="${props."@@TABCIC"}".toString().substring("${props."@#IDXTAB"}".toInteger(),2)
-	props."@DB2"="${props."@@TABDB2"}".toString().substring("${props."@#IDXTAB"}".toInteger(),2)
-	props."@LK2"="${props."@@TABLK2"}".toString().substring("${props."@#IDXTAB"}".toInteger(),2)
-	props."@XDL"="${props."@@TABXDL"}".toString().substring("${props."@#IDXTAB"}".toInteger(),2)
+	if (props.containsKey("@@TABDB2")) {
+		boolean success = setPropsFromTabs()
+		// do something if not success ?
+	}
 }
+
+boolean setPropsFromTabs() {
+	try {
+		int tabIndex =Integer.parseInt("${props.processor_group}".substring(2,4)) - 1
+		props."@BTC" = props."@@TABBTC".charAt(tabIndex).toString()
+		props."@DB2" = props."@@TABDB2".charAt(tabIndex).toString()
+		props."@XDL" = props."@@TABXDL".charAt(tabIndex).toString()
+		props."@CIC" = props."@@TABCIC".charAt(tabIndex).toString()
+		props."@LK2" = props."@@TABLK2".charAt(tabIndex).toString()
+	} catch (StringIndexOutOfBoundsException | NumberFormatException ignored) {
+		println("processorGroup: No valid number found at the required position")
+		return false
+	}
+	return true
+}
+
+
+
