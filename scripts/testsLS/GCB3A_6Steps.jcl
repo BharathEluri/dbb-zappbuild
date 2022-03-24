@@ -48,16 +48,7 @@
 //ND-TST1  ENDIF
 //ENDCTL   ENDIF
 //*
-[
-def sql = new MVSExec().pgm("DSNHPC").parm(&DB2OPT)
-sql.dd(new DDStatement().name("SYSUT1").options("trk space(15,15) unit(vio) new"))
-sql.dd(new DDStatement().name("SYSUT2").options("trk space(5,5) unit(vio) new"))
-sql.dd(new DDStatement().name("SYSLIB").dsn(&DB2DCLG).options("shr"))
-sql.dd(new DDStatement().name("DBRMLIB").dsn(&&DBRM(&C1ELEMENT))
-.options("cyl space(1,1,1) unit(work) new recfm(F,B) blksize(80)").pass(true))
-sql.dd(new DDStatement().name("TASKLIB").dsn(&DB2EXIT).options("shr")
-sql.dd(new DDStatement().dsn(&DB2EXIT).options("shr")
-]
+
 
 //********************************************************************
 //* -> TRANSLATION CICS
@@ -536,6 +527,7 @@ PRINT(OUTPUT(SOURCE,NOLIST))
 //* >     COPY OUTDD=DDOUT3,INDD=DDIN3
 //* >     S M=((MEMBERNAME,R))
 //* > /*
+//* > Richtig ist das DBRM in das Nexus zu kopieren und nicht auf eine Datei
 //*
 //* Vars: &@DB2 &@@BASEC &C1ELEMENT &DB2RMLB
 //*

@@ -4,6 +4,10 @@ import com.ibm.dbb.build.MVSExec
 
 @Field BuildProperties props = BuildProperties.getInstance()
 
+// load the element properties, processor default and overriding properties
+populateBuildProperties(buildFile)
+
+
 MVSExec sql = createSqlCommand(buildFile, logicalFile, member, logFile)
 MVSExec trn = createTrnCommand(buildFile, logicalFile, member, logFile)
 MVSExec compile = createCompileCommand(buildFile, logicalFile, member, logFile)
@@ -64,4 +68,47 @@ def createLked2Command(buildFile, logicalFile, member, logFile) {
 }
 
 def createDbrmcopyCommand(buildFile, logicalFile, member, logFile) {
+}
+
+def populateBuildProperties(String buildFile) {
+	def buildFileName = buildFile.toString()
+	def String[] entries = buildFileName.split("/")
+	def String[] elementandtype = entries[3].split("[.]")
+	def String[] envandstage ="${props.env}".split("-")
+	props.ENV = envandstage[0]
+	props.STG = envandstage[1]
+	props.SYS = entries[1]
+	props.SUB = entries[2]
+	props.TYP = elementandtype[1]
+	props."@@CLI"="${props.ENV}".toString().substring(0,1)
+	props."@@TYP"="${props.TYP}".toString().substring(3,7)
+	def elementProps = "${props.workspace}/${buildFileName}.properties"
+	props.load(new File(elementProps))
+	def defaultProps = "${props.DBBBuildDir}/processors/${props.processor}.defaults.properties"
+	def overridingProps = "${props.workspace}/configuration/${props.ENV}-${props.STG}/${props.SYS}/${props.SUB}/${props.processor}/${props.processor_group}/${props.TYP}.properties"
+	props.load(new File(overridingProps))
+	props.load(new File(defaultProps))
+	props.load(new File(overridingProps))
+
+	if (props.containsKey("@@TABDB2")) {
+		boolean success = setPropsFromTabs(props)
+		// do somthing if not success ?
+	}
+}
+
+boolean setPropsFromTabs() {
+	try {
+	    // processor-group or processor_group ?
+		int tabIndex =Integer.parseInt(props.processor-group.substring(2,4)) - 1
+
+		props."@BTC" = props."@@TABBTC".charAt(tabIndex).toString()
+		props."@DB2" = props."@@TABDB2".charAt(tabIndex).toString()
+		props."@XDL" = props."@@TABXDL".charAt(tabIndex).toString()
+		props."@CIC" = props."@@TABCIC".charAt(tabIndex).toString()
+		props."@LK2" = props."@@TABLK2".charAt(tabIndex).toString()
+	} catch (StringIndexOutOfBoundsException | NumberFormatException ignored) {
+	   println("processorGroup: No valid number found at the required position")
+	   return false
+	}
+	return true
 }
