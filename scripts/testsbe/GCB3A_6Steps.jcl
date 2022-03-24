@@ -112,6 +112,7 @@
 //*        oder &&ELMNEW oder &&ELMOUT
 //*        ( &&ELMOUT wird im Step //CONWRITE  EXEC PGM=CONWRITE erstellt
 //*        &&ELMNEW wird im Step //GNOPTION EXEC PGM=IEBGENER mit Inhalt erstellt)
+//*        in diesem faellen kann danach elemnew and sysin dd concated werden
 //* Output: SYSLIN DSN=&&SYSLIN?
 //*
 //* SYSPRINT DSN=&&COB0LST wird in Step PREALLOC erstellt
