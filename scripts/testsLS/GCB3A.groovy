@@ -202,7 +202,14 @@ def createCompileCommand(buildFile, logicalFile, member, logFile) {
 	if("${props.COMPILER}" == "CWPCMAIN"){
 		compile.dd(new DDStatement().name("CWPDDIO").dsn("${props.ABNDDIOF}").options("shr"))
 		compile.dd(new DDStatement().name("CWPERRM").dsn("&&CWPERRM").pass(true))
-		compile.dd(new DDStatement().name("CWPWBNV").)
+		compile.dd(new DDStatement().name("CWPWBNV").options("sysout(z) new")) //??? Z252
+		compile.dd(new DDStatement().name("SYSOUT").options("sysout(z) new")) //???
+		if("${props.@CIC}" == "Y"){
+			compile.dd(new DDStatement().name("CWPPRMO")*) //? 
+		}
+		if("${props.@BTC}" == "Y"){
+			compile.dd(new DDStatement().name("CWPPRMO")*)
+		}
 	}
 
 //def createCompileCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT, File logFile) {
