@@ -30,7 +30,7 @@ JCL to Groovy
 
 9. BUFNO, MONITOR, FOOTPRT
    zu skippen
-	 								 
+	 								
 10. //DBRMLIB  DD DSN=&&DBRM(&C1ELEMENT),DISP=(,PASS),
    sql.dd(new DDStatement().name("DBRMLIB").dsn("${props.dbrmDsn}(${props.C1ELEMENT})").options("shr"))
 
@@ -74,8 +74,33 @@ JCL to Groovy
    sql.dd(new DDStatement().name("SYSPRINT").options("cyl space(1,2) unit(vio) new"))
    trn.dd(new DDStatement().name("SYSPRINT").options("cyl space(1,2) unit(vio) new"))
 
+18. //CWPWBNV  DD SYSOUT=Z
+   .dd(new DDStatement().name("SYSPRINT").options("SYSOUT(Z)"))
 
+19. //SYSOUT   DD SYSOUT=Z
+   .dd(new DDStatement().name("SYSOUT").options("SYSOUT(Z)"))
 
+20. //CWPPRMO  DD *
+LANGUAGE(COBOLZ/OS)
+COBOL(OUTPUT(NOPRINT,NODDIO))
+PROCESSOR(OUTPUT(PRINT,DDIO))
+PROCESSOR(TEXT(NONE))
+PROCESSOR(NOBYPASS)
+PROCESSOR(ERRORS(MIXED-CASE))
+DDIO(OUTPUT(FIND,COMPRESS,NOLIST))
+PRINT(OUTPUT(SOURCE,NOLIST))
+CICSTEST(OPTIONS(WARNING))
+
+.dd(new DDStatement().name("CWPPRMO").instreamData('''
+LANGUAGE(COBOLZ/OS)
+COBOL(OUTPUT(NOPRINT,NODDIO))
+PROCESSOR(OUTPUT(PRINT,DDIO))
+PROCESSOR(TEXT(NONE))
+PROCESSOR(NOBYPASS)
+PROCESSOR(ERRORS(MIXED-CASE))
+DDIO(OUTPUT(FIND,COMPRESS,NOLIST))
+PRINT(OUTPUT(SOURCE,NOLIST))
+CICSTEST(OPTIONS(WARNING))''')
 
 
 ------------------------------------------------------------------------------------------------------------
