@@ -68,7 +68,11 @@ buildFiles.each { buildFile ->
 	{
 		def sqlrc = sql.execute()
 		if (sqlrc > 4)
+		{
 			println("db2 Pre Compile failed!  RC=$sqlrc")
+			String errorMsg = "*The db2 Pre compile return code ($sqlrc) for $buildFile"
+			buildUtils.updateBuildResult(errorMsg:errorMsg,logs:["${logName}.log":logFile],client:getRepositoryClient())
+		}
 		else
 		{
 			println("db2 Pre Compile successful!  RC=$sqlrc")
@@ -90,10 +94,16 @@ buildFiles.each { buildFile ->
 	{
 		def trnrc = trn.execute()
 		if (trnrc > 4)
+		{
 			println("trn failed!  RC=$trnrc")
+			String errorMsg = "trn return code ($trnrc) for $buildFile"
+			buildUtils.updateBuildResult(errorMsg:errorMsg,logs:["${logName}.log":logFile],client:getRepositoryClient())
+		}
 		else
 		{
 			println("trn successful!  RC=$trnrc")
+			String successMsg = "trn return code ($trnrc) for $buildFile"
+			buildUtils.updateBuildResult(successMsg:successMsg,logs:["${logName}.log":logFile],client:getRepositoryClient())
 			def trncopyrc = syspunchcopy.execute()
 			if (trncopyrc > 4)
 				println("copy failed!  RC=$trncopyrc")
@@ -139,6 +149,7 @@ def createTrnCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT
 	trn.dd(new DDStatement().name("SYSPRINT").options("cyl space(1,2) unit(vio) new"))
 	trn.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}(${C1ELEMENT})").options("shr"))
 	trn.dd(new DDStatement().name("SYSPUNCH").dsn("&&SYSPUNCH").options("tracks space(15,5) unit(vio) new").pass(true))
+	trn.copy(new CopyToHFS().ddName("SYSPRINT").file(logFile).hfsEncoding(props.logEncoding).append(true))
 	return trn
 }
 
@@ -289,7 +300,7 @@ def populateBuildProperties(String buildFile) {
 	def elementProps = "${props.workspace}/${buildFileName}.properties"
 	props.load(new File(elementProps))
 	def defaultProps = "${props.DBBBuildDir}/processors/${props.processor}.defaults.properties"
-	def overridingProps = "${props.workspace}/configuration/${props.ENV}-${props.STG}/${props.SYS}/${props.SUB}/${props.processor}/${props.processor_group}/${props.TYP}.properties"
+	def overridingProps = "${props.workspace}/configuration/${props.ENV}-${props.STG}/${props.SYS}/${props.SUB}/${props.processor}/${props."processor-group"}/${props.TYP}.properties"
 	props.load(new File(overridingProps))
 	props.load(new File(defaultProps))
 	props.load(new File(overridingProps))
@@ -301,7 +312,7 @@ def populateBuildProperties(String buildFile) {
 
 boolean setPropsFromTabs() {
 	try {
-		int tabIndex =Integer.parseInt("${props.processor_group}".substring(2,4)) - 1
+		int tabIndex =Integer.parseInt("${props."processor-group"}".substring(2,4)) - 1
 		props."@BTC" = props."@@TABBTC".charAt(tabIndex).toString()
 		props."@DB2" = props."@@TABDB2".charAt(tabIndex).toString()
 		props."@XDL" = props."@@TABXDL".charAt(tabIndex).toString()
