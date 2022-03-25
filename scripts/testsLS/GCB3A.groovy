@@ -163,6 +163,26 @@ def createCompileCommand(buildFile, logicalFile, member, logFile) {
 	if ("${props.COB3DYN}" == "Y" && "${props.@DB2}" == "Y"){
 		compile.dd(new DDStatement().name("DBRMLIB").dsn("${props.dbrmDsn}(${props.C1ELEMENT})").options("shr").pass(true))
 	}
+	compile.dd(new DDStatement().name("SYSLIB").dsn("SYS1.VIDE.BSCOS39S").options("shr"))
+	compile.dd(new DDStatement().dsn("${props.COCPUSR1}").options("shr"))
+	compile.dd(new DDStatement().dsn("${props.COCPUSR2}").options("shr"))
+	compile.dd(new DDStatement().dsn("${props.COCPUSR3}").options("shr"))
+	compile.dd(new DDStatement().dsn("${props.COBSHDM}").options("shr"))
+	compile.dd(new DDStatement().dsn("${props.COBODMM}").options("shr"))
+	if("${props.@CIC}" == "Y"){
+		compile.dd(new DDStatement().dsn("${props.COBCICM}").options("shr"))
+		compile.dd(new DDStatement().dsn("${props.COBASFM}").options("shr"))
+	}
+	if("${props.@BTC}" == "Y"){
+		compile.dd(new DDStatement().dsn("${props.COBPRNTM}").options("shr"))
+	}
+	if("${props.@DB2}" == "Y"){
+		compile.dd(new DDStatement().dsn("${props.DB2DCLG}").options("shr"))
+	}
+	compile.dd(new DDStatement().dsn("${props.COCPSTG1}").options("shr"))
+	compile.dd(new DDStatement().dsn("${props.COCPSTG2}").options("shr"))
+	compile.dd(new DDStatement().dsn("${props.COSTGRCP}").options("shr"))
+	compile.dd(new DDStatement().dsn("${props.COSTGPCP}").options("shr"))
 	
 
 //def createCompileCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT, File logFile) {
