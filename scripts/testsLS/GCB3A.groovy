@@ -183,7 +183,27 @@ def createCompileCommand(buildFile, logicalFile, member, logFile) {
 	compile.dd(new DDStatement().dsn("${props.COCPSTG2}").options("shr"))
 	compile.dd(new DDStatement().dsn("${props.COSTGRCP}").options("shr"))
 	compile.dd(new DDStatement().dsn("${props.COSTGPCP}").options("shr"))
-	
+	compile.dd(new DDStatement().name("SYSLIN").dsn("&&SYSLIN").options("cyl space(1,1) unit(vio) rlse blksize(3200) new").pass(true))
+	compile.dd(new DDStatement().name("SYSPRINT").dsn("&&COB0LST").pass(true))
+	compile.dd(new DDStatement().name("TASKLIB").dsn("${props.COBLIB}").options("shr"))
+	compile.dd(new DDStatement().dsn("${props.ABNLIB}").options("shr"))
+	compile.dd(new DDStatement().dsn("${props.CICSLOAD}").options("shr"))
+	if ("${props.@DB2}" == "Y"){
+		compile.dd(new DDStatement().dsn("${props.DB2EXIT}").options("shr"))
+		compile.dd(new DDStatement().dsn("${props.DB2LOAD}").options("shr"))
+	}
+	compile.dd(new DDStatement().name("SYSUT1").options("cyl space(1,1) unit(vio) new"))
+	compile.dd(new DDStatement().name("SYSUT2").options("cyl space(1,1) unit(vio) new"))
+	compile.dd(new DDStatement().name("SYSUT3").options("cyl space(1,1) unit(vio) new"))
+	compile.dd(new DDStatement().name("SYSUT4").options("cyl space(1,1) unit(vio) new"))
+	compile.dd(new DDStatement().name("SYSUT5").options("cyl space(1,1) unit(vio) new"))
+	compile.dd(new DDStatement().name("SYSUT6").options("cyl space(1,1) unit(vio) new"))
+	compile.dd(new DDStatement().name("SYSUT7").options("cyl space(1,1) unit(vio) new"))
+	if("${props.COMPILER}" == "CWPCMAIN"){
+		compile.dd(new DDStatement().name("CWPDDIO").dsn("${props.ABNDDIOF}").options("shr"))
+		compile.dd(new DDStatement().name("CWPERRM").dsn("&&CWPERRM").pass(true))
+		compile.dd(new DDStatement().name("CWPWBNV").)
+	}
 
 //def createCompileCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT, File logFile) {
 //	props.COB3DYN = "N"
