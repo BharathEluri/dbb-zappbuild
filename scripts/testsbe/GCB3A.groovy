@@ -42,7 +42,7 @@ buildFiles.each { buildFile ->
 	LogicalFile logicalFile = dependencyResolver.getLogicalFile()
 	String C1ELEMENT = CopyToPDS.createMemberName(buildFile)
 	String logName = "${props.ENV}.${props.STG}.${props.SYS}.${props.SUB}.${C1ELEMENT}.${props.TYP}"
-	logFile = new File( props.userBuild ? "${props.buildOutDir}/${logName}.userBuild.LISTING" : "${props.buildOutDir}/${logName}.LISTING")
+	File logFile = new File( props.userBuild ? "${props.buildOutDir}/${C1ELEMENT}.log" : "${props.buildOutDir}/${logName}.log")
 	if (logFile.exists())
 		logFile.delete()
 
@@ -162,42 +162,18 @@ def createSyspunchCopyCommand(String buildFile, LogicalFile logicalFile, String 
 	return syspunchcopy
 }
 
+
 //def createCompileCommand(String buildFile, LogicalFile logicalFile, String C1ELEMENT, File logFile) {
-//	props.COB3DYN = "N"
-//	props."@CIC" = "Y"
-//	props."@XDL" = "Y"
-//	props."@DB2" = "Y"
 //	def compil = new MVSExec().pgm("${props.COMPILER}").parm("${props.COBOPT1},${props.COBOPT2},${props.COBODEV}")
 //
-//	if("${props.COB3DYN}".toString().equals("N") &&
-//	("${props."@CIC"}".toString().equals("Y") || "${props."@XDL"}".toString().equals("Y")) &&
-//	("${props."@DB2"}".toString().equals("Y") || "${props."&@DB2"}".toString().equals("N")))
-//	compil.dd(new DDStatement().name("SYSIN").dsn("&&SYSPUNCH").options("shr"))
+//	compil.dd(new DDStatement().name("SYSIN").instreamData("${props.elemnewOpts})
+//	compil.dd(new DDStatement().dsn("${props.cobol_srcPDS}(${C1ELEMENT})").options("shr"))
 //
-//	if("${props.COB3DYN}".toString().equals("N") &&
-//	("${props."@CIC"}".toString().equals("N") || "${props."@XDL"}".toString().equals("N")) &&
+//	if("${props.COB3DYN}".toString().equals("Y") &&
 //	"${props."@DB2"}".toString().equals("Y"))
-//	compil.dd(new DDStatement().name("SYSIN").dsn("&&SYSCIN").options("shr")
-//
-//	if("${props.COB3DYN}".toString().equals("N") &&
-//	("${props."@CIC"}".toString().equals("N") || "${props."@XDL"}".toString().equals("N")) &&
-//	"${props."@DB2"}".toString().equals("N"))
-//	compil.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}(${C1ELEMENT})").options("shr"))
-//
-//	if("${props.COB3DYN}".toString().equals("Y") &&
-//	("${props."@CIC"}".toString().equals("Y") || "${props."@XDL"}".toString().equals("Y")) &&
-//	"${props."@DB2"}".toString().equals("Y"))
-//	compil.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}(${C1ELEMENT})").options("shr"))
-//
-//	if("${props.COB3DYN}".toString().equals("Y") &&
-//	("${props."@CIC"}".toString().equals("N") || "${props."@XDL"}".toString().equals("N")) &&
-//	"${props."@DB2"}".toString().equals("N"))
-//	compil.dd(new DDStatement().name("SYSIN").dsn("${props.cobol_srcPDS}(${C1ELEMENT})").options("shr"))
-//
-//	if("${props.COB3DYN}".toString().equals("Y") &&
-//	"${props."@DB2"}".toString().equals("N"))
+//	{
 //	compil.dd(new DDStatement().name("DBRMLIB").dsn("${props.cobol_dbrmPDS}(${C1ELEMENT})").options("shr"))
-//
+//	}
 //
 //	compil.dd(new DDStatement().name("SYSLIB").dsn("SYS1.VIDE.BSCOS39S").options("shr"))
 //	compil.dd(new DDStatement().dsn("${props.COCPUSR1}").options("shr"))
@@ -245,9 +221,9 @@ def createSyspunchCopyCommand(String buildFile, LogicalFile logicalFile, String 
 //	{
 //		compil.dd(new DDStatement().name("CWPDDIO").dsn("${props.ABNDDIOF}").options("shr"))
 //		compil.dd(new DDStatement().name("CWPERRM").options("cyl space(1,2) unit(work) new"))
+//		compil.dd(new DDStatement().name("CWPWBNV").options("SYSOUT(Z)"))
+//		compil.dd(new DDStatement().name("SYSOUT").options("SYSOUT(Z)"))
 //	}
-//	//CWPWBNV  DD SYSOUT=Z
-//	//SYSOUT   DD SYSOUT=Z
 //	if("${props."@CIC"}".toString().equals("Y"))
 //	{
 //		compil.dd(new DDStatement().name("CWPPRMO").instreamData('''
@@ -275,7 +251,7 @@ def createSyspunchCopyCommand(String buildFile, LogicalFile logicalFile, String 
 //PRINT(OUTPUT(SOURCE,NOLIST))''')
 //	}
 //
-//return compil
+//	return compil
 //}
 
 def getRepositoryClient() {
@@ -308,8 +284,27 @@ def populateBuildProperties(String buildFile) {
 		boolean success = setPropsFromTabs()
 		// do something if not success ?
 	}
-}
 
+	def elmnewOpts
+
+	elmnewOpts = ''
+	if("${props."@DB2"}".toString().equals("Y") &&
+	("${props."@CIC"}".toString().equals("Y") || "${props."@XDL"}".toString().equals("Y"))) {
+		elmnewOpts = '''CBL SQL(&@ZQ.&DB2OPT.&@ZQ
+                        CBL CICS(&@ZQ.&CITRNOPT.&@ZQ)'''
+	}
+	if("${props."@DB2"}".toString().equals("Y") &&
+	("${props."@CIC"}".toString().equals("N") || "${props."@XDL"}".toString().equals("N"))) {
+		elmnewOpts = '''CBL SQL(&@ZQ.&DB2OPT.&@ZQ)'''
+	}
+	if("${props."@DB2"}".toString().equals("N") &&
+	("${props."@CIC"}".toString().equals("Y") || "${props."@XDL"}".toString().equals("Y"))) {
+		elmnewOpts = '''CBL CICS(&@ZQ.&CITRNOPT.&@ZQ)'''
+	}
+
+
+
+}
 boolean setPropsFromTabs() {
 	try {
 		int tabIndex =Integer.parseInt("${props."processor-group"}".substring(2,4)) - 1
