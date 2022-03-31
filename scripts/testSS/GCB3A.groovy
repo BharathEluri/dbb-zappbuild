@@ -50,8 +50,8 @@ def createSqlCommand(buildFile, logicalFile, member, logFile) {
 def createTrnCommand(buildFile, logicalFile, member, logFile) {
 }
 def trn = new MVSExec().pgm("DFHECP1$").parm("{props.CITRNOPT}")
-trn.dd(new DDStatement().name("STEPLIB").dsn("${props.CICSLOAD}")
-trn.dd(new DDStatement().name("SYSPRINT").dsn("&&TRNLIST")("cyl space(5,5) unit(vio) new").pass(true))
+trn.dd(new DDStatement().name("TASKLIB").dsn("${props.CICSLOAD}".options("shr"))
+trn.dd(new DDStatement().name("SYSPRINT").dsn("&&TRNLIST")("cyl space(5,5) unit(vio) new").pass(true old))
 //if????? DB2=n (ELmount), DB2=y (SYSCIN) 
 trn.dd(new DDStatement().name("SYSIN").dsn("${props.sysinDsn}(${C1ELEMENT})").options("shr"))
 trn.dd(new DDStatement().name("Syspunch").dsn("&&SYSPUNCH")
@@ -61,10 +61,36 @@ def createCompileCommand(buildFile, logicalFile, member, logFile) {
 }
 
 def createLked1Command(buildFile, logicalFile, member, logFile) {
+	def lked1 = new MVSExec().pgm("IEWL").parm("&LKDOPT")
+	lked1.dd(new DDStatement().name(SYSLMOD).dsn("{&LOADLIB2}(${&C1ELEMENT})").options(footprint = create))
+	// Nachfragen wegen BTCHLOA2 /keine Ahnung was das ist 
+	lked1.dd(new DDStatement().name(&&LKD2LST).pass(true old))
+	lked1.dd(new DDStatement().name(SYSUT1).options("shr"))
+		if ("${props.&@BTC}".toString().equals("Y")){
+			DDLKDOPT = dcb=blksize(80)
+		}
+	// Nachfragen da monitroing und props vopn außen
+	lked1.dd(new DDStatement().name(&&SYSLIN).options(new dcb blksize(80)).pass(true old))
+
 }
 
 def createLked2Command(buildFile, logicalFile, member, logFile) {
+	def lked2 = new MVSExec().pgm("IEWL").("&LKDOPT")
+	lked2.dd(new DDStatement().name(SYSLMOD).dsn("{&LOADLIB2}(${&C1ELEMENT})").options(footprint = create))
+	// Nachfragen wegen BTCHLOA2 /keine Ahnung was das ist 
+	lked1.dd(new DDStatement().name(&&LKD2LST).pass(true old))
+	lked1.dd(new DDStatement().name(SYSUT1).options("shr"))
+	// Nachfragen da monitroing und props vopn außen
+
 }
 
 def createDbrmcopyCommand(buildFile, logicalFile, member, logFile) {
+	def dbrmcopy = new MVSExec().pgm("CZX2PZQL").parm("-IEBGENER")
+	dbrmcopy.dd(new DDStatement().name("TASKLIB").dsn("{&BASEC}{CORT.EXITLIB}"))
+	dbrmcopy.dd(new DDStatement().dsn("{&BASEB}{CORT.LINKLIB}"))
+	// NAchfragen 550 nicht ganz klar
+	dbrmcopy.dd(new DDStatement.name(SYSUT1).dsn("{&&DBRM}${&C1ELEMENT}").options(create ))
+	dbrmcopy.dd(new DDStatement.name(SYSUT2).dsn("{&BASEB}{CORT.LINKLIB}"))
+	dbrmcopy.dd(new DDStatement.name(SYSPRINT).dsn("DUMMY"))
+	dbrmcopy.dd(new DDStatement.name(SYSIN).dsn("DUMMY"))
 }
